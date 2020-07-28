@@ -119,13 +119,9 @@ class Board(QGridLayout):
         for coordinate in checkList:
             if rowCoord - 1 >= 0 and rowCoord + 1 < self.rows:
                 if columnCoord - 1 >= 0 and columnCoord + 1 < self.columns:
-                    if self.bricks[coordinate].bomb == True:
-                        count += 1
-                    else:
+                    try:
+                        if self.bricks[coordinate].bomb == True:
+                            count += 1
+                    except:
                         pass
-            if rowCoord >= 0 and rowCoord + 1 < self.rows:
-                if columnCoord - 1 >= 0 and columnCoord + 1 < self.columns:
-                    pass
-
-
         return count
