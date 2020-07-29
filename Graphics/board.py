@@ -6,6 +6,9 @@ from random import randrange
 import os
 import sys
 
+# Need to add in condition for clicking on large area of empty bricks
+# Need to add in condition for right clicking and flagging mines
+
 
 class Board(QGridLayout):
     """ Class for minesweeper board. Contains N x N bricks."""
@@ -75,10 +78,12 @@ class Board(QGridLayout):
         #-------------------------------------------------------------------------------------------
         # Set number of mines touching
         #-------------------------------------------------------------------------------------------
+        # For every brick
         for coord in self.bricks:
+            # Get touch count for brick
             touchCount = self.getTouchingCount(coord[0], coord[1])
+            # Set touch count for brick
             self.bricks[coord].setTouching(touchCount)
-
 
 ####################################################################################################
 
@@ -104,6 +109,7 @@ class Board(QGridLayout):
         for coord in self.bricks:
             self.bricks[coord].setVisibility("revealed")
 
+
 ####################################################################################################
 
     def getTouchingCount(self, rowCoord, columnCoord):
@@ -111,17 +117,75 @@ class Board(QGridLayout):
         if self.bricks[coords].bomb == True:
             return 0
 
-        count = 0
-        checkList = [(rowCoord-1,columnCoord-1),(rowCoord-1,columnCoord),(rowCoord-1,columnCoord+1),
-                     (rowCoord,columnCoord-1),  (rowCoord,columnCoord+1),
-                     (rowCoord+1,columnCoord-1),(rowCoord+1,columnCoord),(rowCoord+1,columnCoord+1)]
+        maxRowIndex = self.rows - 1
+        maxColumnIndex = self.columns - 1
 
-        for coordinate in checkList:
-            if rowCoord - 1 >= 0 and rowCoord + 1 < self.rows:
-                if columnCoord - 1 >= 0 and columnCoord + 1 < self.columns:
-                    try:
-                        if self.bricks[coordinate].bomb == True:
-                            count += 1
-                    except:
-                        pass
+        count = 0
+
+        # Coordinates to check for any brick not on the edge of the board
+        checkAll = [(rowCoord-1,columnCoord-1),(rowCoord-1,columnCoord),(rowCoord-1,columnCoord+1),
+                    (rowCoord+1,columnCoord-1),(rowCoord+1,columnCoord),(rowCoord+1,columnCoord+1),
+                    (rowCoord, columnCoord-1) ,(rowCoord,columnCoord+1)]
+
+        # Upper coordinates
+        checkTop = [(rowCoord-1,columnCoord-1),(rowCoord-1,columnCoord),(rowCoord-1,columnCoord+1)]
+        # Lower coordinates
+        checkBottom = [(rowCoord+1,columnCoord-1),(rowCoord+1,columnCoord),(rowCoord+1,columnCoord+1)]
+        # Coordinates to the right
+        checkLeft = [(rowCoord-1,columnCoord-1), (rowCoord, columnCoord-1), (rowCoord+1, columnCoord-1)]
+        # Coordinates to the left
+        checkRight = [(rowCoord-1,columnCoord+1), (rowCoord,columnCoord+1), (rowCoord+1,columnCoord+1)]
+
+
+        # Top row
+        if rowCoord == 0 and (columnCoord < maxColumnIndex and columnCoord > 0):
+            checklist = checkBottom
+            checklist.append(checkRight[1])
+            checklist.append(checkLeft[1])
+
+        # Bottom row
+        elif rowCoord == maxRowIndex and (columnCoord < maxColumnIndex and columnCoord > 0):
+            checklist = checkTop
+            checklist.append(checkLeft[1])
+            checklist.append(checkRight[1])
+
+        # Left column
+        elif columnCoord == 0 and (rowCoord < self.rows - 1 and rowCoord > 0):
+            checklist = checkRight
+            checklist.append(checkTop[1])
+            checklist.append(checkBottom[1])
+
+        # Right column
+        elif columnCoord + 1 == self.columns and (rowCoord < self.rows -1 and rowCoord > 0):
+            checklist = checkLeft
+            checklist.append(checkTop[1])
+            checklist.append(checkBottom[1])
+
+        # Top left corner
+        elif columnCoord == 0 and rowCoord == 0:
+            checklist = [checkBottom[1], checkBottom[2], checkRight[1]]
+        # Bottom left corner
+        elif columnCoord == 0 and rowCoord + 1 == self.rows:
+            checklist = [checkTop[1], checkTop[2], checkRight[1]]
+        # Top right corner
+        elif columnCoord + 1 == self.columns and rowCoord == 0:
+            checklist = [checkBottom[0], checkBottom[1], checkLeft[1]]
+        # Bottom right corner
+        elif columnCoord + 1 == self.columns and rowCoord + 1 == self.rows:
+            checklist = [checkLeft[1], checkTop[0], checkTop[1]]
+
+        # Anywhere not on border
+        else:
+            # Check everywhere
+            checklist = checkAll
+
+        # For each coordinate in the checklist
+        for coordinate in checklist:
+            # If a bomb exists at that coordinate, increment touchCount
+            if self.bricks[coordinate].bomb == True:
+                count += 1
+
+        if count > 2:
+            print(count, "({}, {})".format(rowCoord, columnCoord))
+        # Return touch count
         return count
