@@ -25,6 +25,8 @@ class GameState():
         self.bricks = {}
         # Mine coordinates (debugging only)
         self.mineCoords = []
+        # Count of bricks flagged
+        self.flags = 0
 
         # Initializing game board (Holds all bricks and their information)
         self.board = self.createBoard(self.sizeX, self.sizeY)
@@ -32,8 +34,10 @@ class GameState():
         self.fillMines(self.sizeX, self.sizeY, self.mines)
         # For every brick in board
         for coordinates in self.bricks:
+            # Get surrounding coordinates
+            checklist = self.surroundingCoordinates(coordinates[0], coordinates[1])
             # Calculate the number of mines near
-            touching = self.getTouchingCount(coordinates[0], coordinates[1])
+            touching = self.getTouchingCount(checklist)
             # Set number of mines in brick
             self.bricks[coordinates].setTouching(touching)
 
@@ -90,9 +94,9 @@ class GameState():
         maxYIndex = self.sizeY - 1
 
         # Coordinates to check for any brick not on the edge of the board
-        checkAll = [(xIndex-1,yIndex-1),(xIndex-1,yIndex),(xIndex-1,yIndex+1),
-                    (xIndex+1,yIndex-1),(xIndex+1,yIndex),(xIndex+1,yIndex+1),
-                    (xIndex, yIndex-1) ,(xIndex,yIndex+1)]
+        checkAll = [(xIndex, yIndex-1) ,(xIndex,yIndex+1), (xIndex-1,yIndex), (xIndex+1,yIndex),
+                    (xIndex-1,yIndex-1),(xIndex-1,yIndex+1),(xIndex+1,yIndex-1),(xIndex+1,yIndex+1)]
+
 
         # Upper coordinates
         checkTop = [(xIndex-1,yIndex-1),(xIndex-1,yIndex),(xIndex-1,yIndex+1)]
@@ -142,68 +146,11 @@ class GameState():
             # Check everywhere
             checklist = checkAll
 
-        return checkAll
-
+        return checklist
 
 ####################################################################################################
 
-    def getTouchingCount(self, xIndex, yIndex):
-        maxXIndex = self.sizeX - 1
-        maxYIndex = self.sizeY - 1
-
-        # Coordinates to check for any brick not on the edge of the board
-        checkAll = [(xIndex-1,yIndex-1),(xIndex-1,yIndex),(xIndex-1,yIndex+1),
-                    (xIndex+1,yIndex-1),(xIndex+1,yIndex),(xIndex+1,yIndex+1),
-                    (xIndex, yIndex-1) ,(xIndex,yIndex+1)]
-
-        # Upper coordinates
-        checkTop = [(xIndex-1,yIndex-1),(xIndex-1,yIndex),(xIndex-1,yIndex+1)]
-        # Lower coordinates
-        checkBottom = [(xIndex+1,yIndex-1),(xIndex+1,yIndex),(xIndex+1,yIndex+1)]
-        # Coordinates to the right
-        checkLeft = [(xIndex-1,yIndex-1), (xIndex, yIndex-1), (xIndex+1, yIndex-1)]
-        # Coordinates to the left
-        checkRight = [(xIndex-1,yIndex+1), (xIndex,yIndex+1), (xIndex+1,yIndex+1)]
-
-        # Top row
-        if xIndex == 0 and (yIndex < maxYIndex and yIndex > 0):
-            checklist = checkBottom
-            checklist.append(checkRight[1])
-            checklist.append(checkLeft[1])
-        # Bottom row
-        elif xIndex == maxXIndex and (yIndex < maxYIndex and yIndex > 0):
-            checklist = checkTop
-            checklist.append(checkLeft[1])
-            checklist.append(checkRight[1])
-        # Far left column
-        elif yIndex == 0 and (xIndex <  maxXIndex and xIndex > 0):
-            checklist = checkRight
-            checklist.append(checkTop[1])
-            checklist.append(checkBottom[1])
-        # Far right column
-        elif yIndex == maxYIndex and (xIndex < maxXIndex and xIndex > 0):
-            checklist = checkLeft
-            checklist.append(checkTop[1])
-            checklist.append(checkBottom[1])
-
-        # Top left corner
-        elif yIndex == 0 and xIndex == 0:
-            checklist = [checkBottom[1], checkBottom[2], checkRight[1]]
-        # Bottom left corner
-        elif yIndex == 0 and xIndex == maxXIndex:
-            checklist = [checkTop[1], checkTop[2], checkRight[1]]
-        # Top right corner
-        elif yIndex == maxYIndex and xIndex == 0:
-            checklist = [checkBottom[0], checkBottom[1], checkLeft[1]]
-        # Bottom right corner
-        elif yIndex == maxYIndex and xIndex == maxXIndex:
-            checklist = [checkLeft[1], checkTop[0], checkTop[1]]
-
-        # Non-edges
-        else:
-            # Check everywhere
-            checklist = checkAll
-
+    def getTouchingCount(self, checklist):
         # Mine counter
         count = 0
         # For all bricks touching xIndex,yIndex
@@ -219,23 +166,117 @@ class GameState():
 ####################################################################################################
 
     def clickBrick(self, coordinate):
+        # Set brick as visible
         self.bricks[coordinate].setVisibility(True)
+        # If brick is mine
+        if self.bricks[coordinate].mine == True:
+            # Lose game
+            self.loseGame()
+        # Check for win
+        self.checkWin()
 
 ####################################################################################################
 
     def clickMany(self, coordinate):
-        print("clickMany() triggered")
+        # A count of empty bricks
+        emptyBricks = 0
         # List of bricks to click
-        clickList = []
-        #
-        self.bricks[coordinate].setVisibility(True)
+        clickList = [coordinate]
+        # Empty brick list
+        emptyList = [coordinate]
+
+        # Counter
+        count = 0
+        # While more emptybricks exist
+        while count < emptyBricks+1:
+            # Current coordinates
+            coordinates = emptyList[count]
+            # Current brick
+            currentBrick = self.bricks[coordinates]
+            # Check list of surrounding bricks
+            checklist = self.surroundingCoordinates(coordinates[0], coordinates[1])
+            # For all bricks in checklist
+            for coord in checklist:
+                # If brick is empty
+                if (self.bricks[coord].touching==0 and self.bricks[coord].mine == False) and (coord not in emptyList):
+                    # Increment empty brick found count
+                    emptyBricks += 1
+                    # Add coordinates to emptyList
+                    emptyList.append(coord)
+                    # Add coordinates to clickList
+                    clickList.append(coord)
+                # If brick is a number
+                elif self.bricks[coord].touching>0 and self.bricks[coord].mine==False and (coord not in clickList):
+                    # Add coordinate to clickList
+                    clickList.append(coord)
+            # Increment count
+            count += 1
+
+        # For all bricks in the click list
+        for brick in clickList:
+            # Click the brick
+            self.bricks[brick].setVisibility(True)
 
 ####################################################################################################
 
     def flagBrick(self, coordinates):
-        self.bricks[coordinates].setFlag(True)
+        # Set brick as flagged
+        self.bricks[coordinates].setFlag()
+        # Increment flag count
+        self.flags += 1
+        # If same amount of flags as mine
+        if self.flags == self.mines:
+            # Check for a win
+            self.checkWin()
 
 ####################################################################################################
+
+    def checkWin(self):
+        # Correct number of flags
+        correct = 0
+        # For all mines
+        for coordinates in self.mineCoords:
+            # If mine is flagged
+            if self.bricks[coordinates].flag:
+                # Increment correct count
+                correct += 1
+
+        # Number of bricks that are visible
+        visible = 0
+        # For all bricks
+        for coordinates in self.bricks:
+            # If brick is visible
+            if self.bricks[coordinates].visible:
+                # Increment visible count
+                visible += 1
+
+        # If all mines are flagged or all bricks that aren't mines are visible
+        if correct == self.mines or visible == (self.sizeX*self.sizeY) - self.mines:
+            # Win the game !
+            self.win()
+
+####################################################################################################
+
+    def win(self):
+        # For all bricks
+        for coord in self.bricks:
+            # Set visibility to True
+            self.bricks[coord].setVisibility(True)
+        # Set status to won
+        self.status = 1
+
+####################################################################################################
+
+    def loseGame(self):
+        # For all bricks
+        for coord in self.bricks:
+            # Set visibility to True
+            self.bricks[coord].setVisibility(True)
+        # Set status of game as lost
+        self.status = 2
+
+####################################################################################################
+
     def printBoard(self):
         #system('clear')
 
@@ -250,7 +291,7 @@ class GameState():
             for yIndex in range(self.sizeY):
                 # If hidden and unflagged
                 if self.bricks[(xIndex, yIndex)].visible == False and self.bricks[(xIndex, yIndex)].flag == False:
-                    print("[ ] ", end = "")
+                    print("[-] ", end = "")
                 # If hidden and flagged
                 elif self.bricks[(xIndex, yIndex)].visible == False and self.bricks[(xIndex, yIndex)].flag == True:
                     print("[F] ", end = "")
@@ -267,3 +308,5 @@ class GameState():
             print("\t{}".format(xIndex))
         # Spacing
         print("\n\n")
+
+####################################################################################################

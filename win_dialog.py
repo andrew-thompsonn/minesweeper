@@ -1,37 +1,35 @@
-#!/usr/bin/env python3
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QLineEdit, QCheckBox, QTextEdit
+from PyQt5.QtGui import QIcon
 
-from board import Board
-
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout
-from PyQt5.QtWidgets import QPushButton, QLineEdit, QFrame,  QLabel
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
-
-import sys
-import os
-
-class CentralWidget(QWidget):
-####################################################################################################
-    def __init__(self, *args, **kwargs):
+class WinDialog(QDialog):
+    def __init__(self, name, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.__name = name
+
         #-------------------------------------------------------------------------------------------
-        # Layouts
+        # LAYOUTS
         #-------------------------------------------------------------------------------------------
         mainLayout = QVBoxLayout(self)
-        board = Board(10, 10, 10)
+        textLayout = QHBoxLayout()
+        buttonLayout = QHBoxLayout()
 
         #-------------------------------------------------------------------------------------------
-        # Widgets
+        # WIDGETS
         #-------------------------------------------------------------------------------------------
-        mainLayout = QVBoxLayout(self)
+        congratsLabel = QLabel("Win")
+        closeButton = QPushButton("close")
 
         #-------------------------------------------------------------------------------------------
-        # Layout Management
+        # LAYOUT MANAGEMENT
         #-------------------------------------------------------------------------------------------
-        mainLayout.addLayout(board)
+        textLayout.addWidget(congratsLabel)
+        buttonLayout.addWidget(closeButton)
+
+        mainLayout.addLayout(textLayout)
+        mainLayout.addLayout(buttonLayout)
 
         #-------------------------------------------------------------------------------------------
-        # Signal Management
+        # SIGNAL MANAGEMENT
         #-------------------------------------------------------------------------------------------
-        
+        closeButton.clicked.connect(self.accept)

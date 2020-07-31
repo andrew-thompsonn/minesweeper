@@ -18,9 +18,12 @@ class Brick():
         # Set bomb to true
         self.mine = True
 
-    def setFlag(self, flag):
+    def setFlag(self):
         # Set status of flag
-        self.flag = flag
+        if self.flag:
+            self.flag = False
+        else:
+            self.flag = True
 
     def setTouching(self, touching):
         # Set number of mines near

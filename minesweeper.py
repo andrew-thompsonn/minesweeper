@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 import sys
 from PyQt5.QtWidgets import QApplication
 from main_window import MainWindow
@@ -7,7 +8,9 @@ from main_window import MainWindow
 def main():
     app = QApplication(sys.argv)
 
+
     mainWindow = MainWindow()
+
 
     mainWindow.show()
 
