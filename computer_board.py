@@ -16,7 +16,9 @@ class ComputerBoard(QGridLayout):
         self.numberColors = {1:"blue",
                              2:"green",
                              3:"red",
-                             4:"darkblue"}
+                             4:"darkblue",
+                             5:"navy",
+                             6:"purple"}
 
         # For all bricks in the current gamestate
         for coordinates in gameState.bricks:
@@ -58,9 +60,14 @@ class ComputerBoard(QGridLayout):
 
                 # If brick is a mine
                 elif brick.mine:
-                    button.setIcon(QIcon(os.path.join(sys.path[0], "images/mineIcon.png")))
+                    button.setIcon(QIcon(os.path.join(sys.path[0], "images/bombIcon.png")))
                     button.setStyleSheet("background:white;border-width:1px;border-color:black;width:20px;height:20px;")
             elif not brick.visible and brick.flag:
                 button.setIcon(QIcon(os.path.join(sys.path[0], "images/flagIcon.png")))
             elif not brick.visible and not brick.flag:
                 button.setIcon(QIcon())
+
+    def lose(self, coordinate, gameState):
+        self.changeBoard(gameState)
+        button = self.buttons[coordinate]
+        button.setStyleSheet("background:red;")

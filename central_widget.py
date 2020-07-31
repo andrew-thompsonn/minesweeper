@@ -111,9 +111,9 @@ class CentralWidget(QWidget):
         infoLayout.addWidget(flagCount)
 
         # Add title layout to main
-        mainLayout.addLayout(titleLayout)
+        #mainLayout.addLayout(titleLayout)
         # Add info layout to main
-        mainLayout.addLayout(infoLayout)
+        #mainLayout.addLayout(infoLayout)
         # Add button layout to main
         mainLayout.addLayout(buttonLayout)
         # Add board layout to main
@@ -148,12 +148,16 @@ class CentralWidget(QWidget):
 ####################################################################################################
 
     def winDialog(self, name):
+        name = name[0]
         dialog = WinDialog(name)
         response = dialog.exec()
 
 ####################################################################################################
 
     def loseDialog(self, name):
+        # name = name[0]
+        # coordinates = name[1]
+        # self.engine.computerBoard.lose(coordinates, self.engine.computerGameState)
         dialog = LoseDialog(name)
         response = dialog.exec()
 

@@ -29,7 +29,7 @@ class Engine(QObject):
         self.rules = Rules()
 
         # Initialize a computer gameState
-        self.computerGameState = GameState(10, 10, 10)
+        self.computerGameState = GameState(16, 16, 40)
         # Initialize a computer board
         self.computerBoard = None
         # Enable computer board graphics
@@ -40,7 +40,7 @@ class Engine(QObject):
         # Initialize a player board
         self.playerBoard = None
         # Enable player board graphics
-        #self.runGraphics(self.playerBoard, self.playerGameState, "human")
+        self.runGraphics(self.playerBoard, self.playerGameState, "human")
 
 
 ####################################################################################################
@@ -48,20 +48,50 @@ class Engine(QObject):
     def runAI(self):
         # Initialize computer player
         computer = ComputerPlayer("easy", self.computerGameState)
-        # While game is active
+        # Get first move
+        coordinates = computer.first()
+        # Commit first move
+        self.commitComputerAction("leftclick", coordinates, self.computerGameState)
+        #Emit signal to update computer board
+        self.computerStateChanged.emit(self.computerGameState)
+
         while self.computerGameState.status == 0:
-            # Handle events
+            # Get locations of mines
             QApplication.processEvents()
-            # Wait
-            QThread.msleep(750)
-            # Create computer moves
-            computer.getMove()
-            # Get move from compute player
-            actionType, coordinate = computer.getAction()
-            # Commit move to game state
-            self.commitComputerAction(actionType, coordinate, self.computerGameState)
-            # Emit signal to update computer board
-            self.computerStateChanged.emit(self.computerGameState)
+            mines = computer.getMines(self.computerGameState)
+            print(mines)
+
+            for mine in mines:
+                # Handle events
+                QApplication.processEvents()
+                # Wait
+                #QThread.msleep(500)
+                # Commit action
+                self.commitComputerAction("rightclick", mine, self.computerGameState)
+                # Emit signal to update computer board
+                self.computerStateChanged.emit(self.computerGameState)
+
+            # Get locations of safe bricks
+            safeBricks = computer.getSafeBricks(self.computerGameState)
+            print(safeBricks)
+
+            for brick in safeBricks:
+                # Handle events
+                QApplication.processEvents()
+                # Wait
+                #QThread.msleep(500)
+                # Commit action
+                self.commitComputerAction("leftclick", brick, self.computerGameState)
+                # Emit signal to update computer board
+                self.computerStateChanged.emit(self.computerGameState)
+
+            if not safeBricks and not mines:
+                # Get random move
+                coordinates = computer.first()
+                # Commit commit random move
+                self.commitComputerAction("leftclick", coordinates, self.computerGameState)
+                #Emit signal to update computer board
+                self.computerStateChanged.emit(self.computerGameState)
 
 ####################################################################################################
 
@@ -85,6 +115,13 @@ class Engine(QObject):
                 # Flag square
                 gameState.flagBrick(coordinate)
 
+        if gameState.status == 1:
+            self.computerStateChanged.emit(self.computerGameState)
+            self.winGame.emit("computer")
+        elif gameState.status == 2:
+            self.computerStateChanged.emit(self.computerGameState)
+            self.loseGame.emit(["computer", coordinate])
+
 ####################################################################################################
 
     def commitPlayerClick(self, coordinates):
@@ -106,7 +143,7 @@ class Engine(QObject):
         # If game is lost
         elif self.playerGameState.status == 2:
             # Emit lose signal
-            self.loseGame.emit("player")
+            self.loseGame.emit(coordinates)
 
 ####################################################################################################
 

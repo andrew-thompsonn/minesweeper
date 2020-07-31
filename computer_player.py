@@ -10,10 +10,6 @@ class ComputerPlayer(Player):
     def __init__(self, skill, gameState):
         # Skill level of AI
         self.skillLevel = skill
-        # Queue for actions the AI decides to perform
-        self.actionQueue = {}
-        # Dictionary of bricks in current game state
-        self.bricks = {}
         # Status on move
         self.firstMove = True
         # Board size in x direction
@@ -22,8 +18,11 @@ class ComputerPlayer(Player):
         self.sizeY = 0
         # Current Gamestate
         self.gameState = gameState
+        # A count of computer moves
+        self.moveCount = 0
 
 ####################################################################################################
+
     def seeBoard(self, gameState):
         # If it is the first move
         if self.firstMove:
@@ -31,74 +30,101 @@ class ComputerPlayer(Player):
             self.sizeX = gameState.sizeX
             self.sizeY = gameState.sizeY
 
-        # Get bricks from game state
-        self.bricks = gameState.bricks
-####################################################################################################
-    def getMove(self):
-        # View the current game state
-        self.seeBoard(self.gameState)
+        bricks = []
 
-        # If it is the first move
-        if self.firstMove:
-            # Generate random coordinates
-            coordinates = (randrange(self.sizeX), randrange(self.sizeY))
-            # Action is a left click
-            actionType = "leftclick"
-            # No longer first move
-            self.firstMove = False
-            # Return actionType and coordinates for first move
-            self.actionQueue[coordinates] = actionType
+        for coordinates in gameState.bricks:
+            if gameState.bricks[coordinates].visible and gameState.bricks[coordinates].touching > 0:
+                bricks.append(gameState.bricks[coordinates])
 
-        # If it is not the first move
-        else:
-            # List of bricks that the computer can draw information from
-            visibleBricks = []
-            # Get all visible bricks
-            for coord in self.bricks:
-                # If brick is visible and unflagged
-                if (self.bricks[coord].visible and self.bricks[coord].flag == False) and self.bricks[coord].touching > 0:
-                    # Add to visible brick list
-                    visibleBricks.append(self.bricks[coord])
-
-            for brick in visibleBricks:
-                # Get list of surrounding bricks
-                checklist = self.surroundingCoordinates(brick.coordinates[0], brick.coordinates[1])
-                # List of candidate squares for mines
-                mineCandidates = []
-                # For all surrounding bricks
-                for coord in checklist:
-                    # If brick is unclicked and unflagged
-                    if self.bricks[coord].visible == False and self.bricks[coord].flag == False:
-                        # Add brick as a candidate for mine
-                        mineCandidates.append(coord)
-
-                # If number of mine candidates equals the number of mines current brick is touching
-                if len(mineCandidates) == brick.touching:
-                    # For all mines in mine candidate list
-                    for mine in mineCandidates:
-                        # Create action for mine as flag
-                        self.actionQueue[mine] = "rightclick"
-
-            # If no logical move
-            if not self.actionQueue:
-                # Generate random coordinates
-                coordinates = (randrange(self.sizeX), randrange(self.sizeY))
-                # Action is a left click
-                actionType = "leftclick"
-                # No longer first move
-                self.firstMove = False
-                # Return actionType and coordinates for first move
-                self.actionQueue[coordinates] = actionType
-
+        return bricks, gameState.bricks
 
 ####################################################################################################
-    def getAction(self):
-        coordinate, actionType = self.actionQueue.popitem()
-        print(actionType, coordinate)
-        return actionType, coordinate
+
+    def first(self):
+        visibleBricks, allBricks = self.seeBoard(self.gameState)
+        invisible = []
+        for coord in allBricks:
+            if not allBricks[coord].visible:
+                invisible.append(coord)
+
+        coordinates = invisible[randrange(len(invisible))]
+
+        # Set first move to false
+        self.firstMove = False
+        # Return the coordinates of the first move
+        return coordinates
 
 ####################################################################################################
-    def surroundingCoordinates(self, xIndex, yIndex):
+
+    def getMines(self, gameState):
+        # Get list of visible bricks
+        visibleBricks, allBricks = self.seeBoard(gameState)
+        # Initialize a list of confirmed mines
+        mines = []
+        # For all visible bricks
+        for brick in visibleBricks:
+            # Initialize a list of candidates for mines
+            mineCandidates = []
+            # Initialize a count of the number of bricks touching
+            bricksTouching = 0
+            # Get list of coordinates surrounding brick
+            checklist = self.getNearCoordinates(brick.coordinates[0], brick.coordinates[1])
+            # For each coordinate surrounding the brick
+            for coordinate in checklist:
+                # If the brick at coordinate is not visible and not a flag
+                if not allBricks[coordinate].visible:
+                    # Increment bricksTouching count
+                    bricksTouching += 1
+                    # Add to mineCandidates
+                    mineCandidates.append(coordinate)
+            # If brick is touching the same number of bricks as mines
+            if brick.touching == bricksTouching:
+                # All bricks it is touching is a mine
+                for coordinate in mineCandidates:
+                    # If coordinate not already in mine list
+                    if coordinate not in mines and not allBricks[coordinate].flag:
+                        # Append to mine list
+                        mines.append(coordinate)
+                        print("found mine!")
+
+        # Return a list of mines
+        return mines
+
+####################################################################################################
+
+    def getSafeBricks(self, gameState):
+        # Get list of visible bricks
+        visibleBricks, allBricks = self.seeBoard(gameState)
+        # A list of confirmed safe bricks
+        clearBricks = []
+        # For every visible brick
+        for brick in visibleBricks:
+            # Number of flags the brick is touching
+            touchingFlags = 0
+            # Get coordinates of surrounding bricks
+            checklist = self.getNearCoordinates(brick.coordinates[0], brick.coordinates[1])
+            # For every surrounding brick
+            for coordinate in checklist:
+                # If the surrounding brick is flagged
+                if allBricks[coordinate].flag:
+                    # Increment flag touch count
+                    touchingFlags += 1
+            # If brick is touching the same number of flags as bombs
+            if touchingFlags == brick.touching:
+                # For every surrounding brick
+                for coordinate in checklist:
+                    # If the surrounding brick is not flagged and not visible
+                    if not allBricks[coordinate].flag and not allBricks[coordinate].visible:
+                        # If not already in clear bricks
+                        if coordinate not in clearBricks:
+                            # It is a safe brick to click
+                            clearBricks.append(coordinate)
+        # Return safe bricks 
+        return clearBricks
+
+####################################################################################################
+
+    def getNearCoordinates(self, xIndex, yIndex):
         maxXIndex = self.sizeX - 1
         maxYIndex = self.sizeY - 1
 
@@ -156,4 +182,5 @@ class ComputerPlayer(Player):
             checklist = checkAll
 
         return checklist
+
 ####################################################################################################

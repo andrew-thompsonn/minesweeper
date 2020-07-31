@@ -7,9 +7,7 @@ from random import randrange
 from os import system
 
 class GameState():
-    """ Class for the current game state of a minesweeper game. Contains a  2 dimensional
-        list representing the board which is filled with bricks.
-    """
+    """ Class for the current game state of a minesweeper game."""
 ####################################################################################################
 
     def __init__(self, sizeX, sizeY, mines):
@@ -27,6 +25,8 @@ class GameState():
         self.mineCoords = []
         # Count of bricks flagged
         self.flags = 0
+        # Coordinates of bricks that are visible
+        #self.visibleBricks = []
 
         # Initializing game board (Holds all bricks and their information)
         self.board = self.createBoard(self.sizeX, self.sizeY)
@@ -168,6 +168,8 @@ class GameState():
     def clickBrick(self, coordinate):
         # Set brick as visible
         self.bricks[coordinate].setVisibility(True)
+        # Add to visible list
+        #self.visibleBricks.append(self.bricks[coordinate])
         # If brick is mine
         if self.bricks[coordinate].mine == True:
             # Lose game
@@ -261,7 +263,10 @@ class GameState():
         # For all bricks
         for coord in self.bricks:
             # Set visibility to True
-            self.bricks[coord].setVisibility(True)
+            if not self.bricks[coord].mine:
+                self.bricks[coord].setVisibility(True)
+            elif self.bricks[coord].mine and not self.bricks[coord].flag:
+                self.flagBrick(coord)
         # Set status to won
         self.status = 1
 
