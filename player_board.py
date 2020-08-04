@@ -22,7 +22,9 @@ class PlayerBoard(QGridLayout):
         self.numberColors = {1:"blue",
                              2:"green",
                              3:"red",
-                             4:"darkblue"}
+                             4:"darkblue",
+                             5:"navy",
+                             6:"purple"}
 
         # For all bricks in the current gamestate
         for coordinates in gameState.bricks:
@@ -52,15 +54,12 @@ class PlayerBoard(QGridLayout):
     def handleRightClick(self):
         button = self.sender()
         self.buttonRightClick.emit(self.buttonCoords[button])
-        print("Right click detected in player board")
 
     def handleLeftClick(self):
         button = self.sender()
         self.buttonLeftClick.emit(self.buttonCoords[button])
-        print("Left click detected in player board")
 
     def changeBoard(self, gameState):
-        print("In changeBoard()[Board]")
         bricks = gameState.bricks
         # For all bricks
         for coordinate in bricks:

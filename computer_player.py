@@ -6,6 +6,7 @@ from random import randrange
 import time
 
 class ComputerPlayer(Player):
+
 ####################################################################################################
     def __init__(self, skill, gameState):
         # Skill level of AI
@@ -13,9 +14,9 @@ class ComputerPlayer(Player):
         # Status on move
         self.firstMove = True
         # Board size in x direction
-        self.sizeX = 0
+        self.sizeX = gameState.sizeX
         # Board size in y direction
-        self.sizeY = 0
+        self.sizeY = gameState.sizeY
         # Current Gamestate
         self.gameState = gameState
         # A count of computer moves
@@ -24,19 +25,10 @@ class ComputerPlayer(Player):
 ####################################################################################################
 
     def seeBoard(self, gameState):
-        # If it is the first move
-        if self.firstMove:
-            # Get the size of the board
-            self.sizeX = gameState.sizeX
-            self.sizeY = gameState.sizeY
+        # Ensure the computer is only getting information the player can see
+        visibleBricks = gameState.visibleBricks
 
-        bricks = []
-
-        for coordinates in gameState.bricks:
-            if gameState.bricks[coordinates].visible and gameState.bricks[coordinates].touching > 0:
-                bricks.append(gameState.bricks[coordinates])
-
-        return bricks, gameState.bricks
+        return visibleBricks, gameState.bricks
 
 ####################################################################################################
 
@@ -85,7 +77,6 @@ class ComputerPlayer(Player):
                     if coordinate not in mines and not allBricks[coordinate].flag:
                         # Append to mine list
                         mines.append(coordinate)
-                        print("found mine!")
 
         # Return a list of mines
         return mines
@@ -119,7 +110,7 @@ class ComputerPlayer(Player):
                         if coordinate not in clearBricks:
                             # It is a safe brick to click
                             clearBricks.append(coordinate)
-        # Return safe bricks 
+        # Return safe bricks
         return clearBricks
 
 ####################################################################################################

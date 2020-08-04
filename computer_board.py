@@ -38,7 +38,6 @@ class ComputerBoard(QGridLayout):
             self.addWidget(button, coordinates[0], coordinates[1])
 
     def changeBoard(self, gameState):
-        print("In changeBoard()[Board]")
         bricks = gameState.bricks
         # For all bricks
         for coordinate in bricks:
