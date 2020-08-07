@@ -154,7 +154,7 @@ class PsqlDatabase:
         # Insert statement
         insertString = "INSERT INTO save_state (saveid, size, visible_bricks, mine_locations, flag_locations, gameID, datetime ) "
         # Values statement
-        valueString = "VALUES ({},'{}', {}, {}, {}, {}, current_timestamp);".format(saveID, size, visibleArrayString, mineArrayString, flagArrayString, gameID)
+        valueString = "VALUES ({},'{}', {}, {}, {}, {}, localtimestamp);".format(saveID, size, visibleArrayString, mineArrayString, flagArrayString, gameID)
 
         # Execute the insertion
         self.cursor.execute(insertString + valueString)
@@ -176,8 +176,30 @@ class PsqlDatabase:
         # Get all player games that have been saved in progress
         self.cursor.execute("select gameid from game_info where playerid = {} and status = 0;".format(playerID))
         gameIDs = self.cursor.fetchall()
-        
 
+        # Initialize a list of formatted game ids
+        formattedGameIDs = []
+        # For all game ids returned from the db
+        for gameID in gameIDs:
+            # Get the actual id
+            id = gameID[0]
+            # Append it to the formatted game ids
+            formattedGameIDs.append(id)
+
+        print("\n\n\n FORMATTED GAME IDS : {} \n\n\n".format(formattedGameIDs))
+
+        sizes = []
+        dates = []
+
+        saveInfo = []
+
+        for gameID in formattedGameIDs:
+            self.cursor.execute("select size, to_char(datetime at time zone 'US/Mountain', 'HH24:MI:SS'), saveid from save_state where gameid = {};".format(gameID))
+            savedGames = self.cursor.fetchall()
+
+            saveInfo.append(savedGames)
+
+        return saveInfo
 
 ####################################################################################################
 

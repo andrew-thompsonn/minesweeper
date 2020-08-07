@@ -30,7 +30,7 @@ class WinDialog(QDialog):
         # Game info
 
         difficultyLabel = QLabel("Difficulty: {}".format(difficulty))
-        timeLabel = QLabel(time)
+        timeLabel = QLabel("Time: "+time)
 
         # Close button
         closeButton = QPushButton("close")
@@ -51,4 +51,4 @@ class WinDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # SIGNAL MANAGEMENT
         #-------------------------------------------------------------------------------------------
-        closeButton.clicked.connect(self.accept)
+        closeButton.clicked.connect(self.close)

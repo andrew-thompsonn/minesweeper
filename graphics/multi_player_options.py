@@ -94,7 +94,7 @@ class MultiPlayerOptions(QDialog):
         self.nameLineEdit.textChanged.connect(self.checkName)
         backButton.clicked.connect(self.closeDialog)
 
-        self._exitCode = 0
+        self._exitCode = 1
 
     def checkName(self, name):
         # If no letters or empty name

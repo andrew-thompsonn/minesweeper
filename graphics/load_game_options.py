@@ -14,6 +14,7 @@ class LoadGameOptions(QDialog):
         gameDatabase = PsqlDatabase()
         gameDatabase.connectToDatabase()
         self.names = gameDatabase.selectNames()
+        gameDatabase.selectSaves("Andrew")
 
         #-------------------------------------------------------------------------------------------
         # LAYOUTS

@@ -191,13 +191,9 @@ class GameDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # SIGNAL MANAGEMENT
         #-------------------------------------------------------------------------------------------
-        # Connect changes in player game to player board
-        self.engine.playerStateChanged.connect(playerBoard.changeBoard)
+
         # Connect changes in number of flags to handler
         self.engine.playerFlagNumberChanged.connect(self.handlePlayerFlagNumber)
-
-        # Connect changes in computer game to computer board
-        self.engine.computerStateChanged.connect(computerBoard.changeBoard)
         # Connect changes in number of flags to handler
         self.engine.computerFlagNumberChanged.connect(self.handleComputerFlagNumber)
 
@@ -246,9 +242,9 @@ class GameDialog(QDialog):
 
 ####################################################################################################
 
-    def winDialog(self, name):
-        # Pass game time to engine
-        self.engine.setGameTime(self.timeString)
+    def winDialog(self, info):
+        time = info[0]
+        name = info[1]
         # If configuration is singleplayer
         if self.config == 1:
             # Send player difficulty
@@ -266,17 +262,17 @@ class GameDialog(QDialog):
             # Send player difficulty
             difficulty = self.difficulties[0]
         # Create a win game dialog
-        dialog = WinDialog(name, difficulty, self.timeString)
+        dialog = WinDialog(name, difficulty, time)
         # Execute the dialog
         response = dialog.exec()
         # Close game dialog
-        self.accept()
+        self.close()
 
 ####################################################################################################
 
-    def loseDialog(self, name):
-        # Pass game time to engine
-        self.engine.setGameTime(self.timeString)
+    def loseDialog(self, info):
+        time = info[0]
+        name = info[1]
         # If configuration is singleplayer
         if self.config == 1:
             # Send player difficulty
@@ -294,11 +290,11 @@ class GameDialog(QDialog):
             # Send player difficulty
             difficulty = self.difficulties[0]
         # Dialog box for losing the game
-        dialog = LoseDialog(name, difficulty, self.timeString)
+        dialog = LoseDialog(name, difficulty, time)
         # Execute the dialog
         response = dialog.exec()
         # Close the game dialog
-        self.accept()
+        self.close()
 
 
 ####################################################################################################

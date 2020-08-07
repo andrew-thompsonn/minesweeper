@@ -18,7 +18,8 @@ class ComputerBoard(QGridLayout):
                              3:"red",
                              4:"darkblue",
                              5:"navy",
-                             6:"purple"}
+                             6:"purple",
+                             7:"orange"}
 
         # For all bricks in the current gamestate
         for coordinates in gameState.bricks:
@@ -37,34 +38,39 @@ class ComputerBoard(QGridLayout):
             # Add to board
             self.addWidget(button, coordinates[0], coordinates[1])
 
-    def changeBoard(self, gameState):
+    def changeBrick(self, info):
+        gameState = info[1]
+        coordinate = info[0]
         bricks = gameState.bricks
-        # For all bricks
+
+        brick = bricks[coordinate]
+        # Define current button
+        button = self.buttons[coordinate]
+
+        # If the brick is visible
+        if brick.visible:
+            # If the brick is not a mine and not touching mines
+            if brick.mine == False and brick.touching == 0:
+                button.setStyleSheet("background:white;border-width:1px;border-color:black;width:20px;height:20px;")
+            # If brick is not a mine and touching mines
+            elif brick.mine == False and brick.touching > 0:
+                button.setStyleSheet("background:white;border-width:1px;border-color:black;width:20px;height:20px;color:{}".format(self.numberColors[brick.touching]))
+                button.setText(str(brick.touching))
+                button.setFont(QFont('Ariel', 14))
+
+            # If brick is a mine
+            elif brick.mine:
+                button.setIcon(QIcon(os.path.join(sys.path[0], "images/bombIcon.png")))
+                button.setStyleSheet("background:white;border-width:1px;border-color:black;width:20px;height:20px;")
+        elif not brick.visible and brick.flag:
+            button.setIcon(QIcon(os.path.join(sys.path[0], "images/flagIcon.png")))
+        elif not brick.visible and not brick.flag:
+            button.setIcon(QIcon())
+
+    def changeMany(self, gameState):
+        bricks = gameState.bricks
         for coordinate in bricks:
-            # Define current bricks
-            brick = bricks[coordinate]
-            # Define current button
-            button = self.buttons[coordinate]
-
-            # If the brick is visible
-            if brick.visible:
-                # If the brick is not a mine and not touching mines
-                if brick.mine == False and brick.touching == 0:
-                    button.setStyleSheet("background:white;border-width:1px;border-color:black;width:20px;height:20px;")
-                # If brick is not a mine and touching mines
-                elif brick.mine == False and brick.touching > 0:
-                    button.setStyleSheet("background:white;border-width:1px;border-color:black;width:20px;height:20px;color:{}".format(self.numberColors[brick.touching]))
-                    button.setText(str(brick.touching))
-                    button.setFont(QFont('Ariel', 14))
-
-                # If brick is a mine
-                elif brick.mine:
-                    button.setIcon(QIcon(os.path.join(sys.path[0], "images/bombIcon.png")))
-                    button.setStyleSheet("background:white;border-width:1px;border-color:black;width:20px;height:20px;")
-            elif not brick.visible and brick.flag:
-                button.setIcon(QIcon(os.path.join(sys.path[0], "images/flagIcon.png")))
-            elif not brick.visible and not brick.flag:
-                button.setIcon(QIcon())
+            self.changeBrick([coordinate, gameState])
 
     def lose(self, coordinate, gameState):
         self.changeBoard(gameState)

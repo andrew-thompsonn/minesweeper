@@ -28,19 +28,12 @@ class GameState():
         self.visibleBricks = []
         # Flag locations
         self.flagCoords = []
+        # First move indicator
+        self.firstMove = True
 
         # Initializing game board (Holds all bricks and their information)
         self.bricks = self.createBoard(self.sizeX, self.sizeY)
-        # Filling the bricks in the board with mines
-        self.fillMines(self.sizeX, self.sizeY, self.mines)
-        # For every brick in board
-        for coordinates in self.bricks:
-            # Get surrounding coordinates
-            checklist = self.surroundingCoordinates(coordinates[0], coordinates[1])
-            # Calculate the number of mines near
-            touching = self.getTouchingCount(checklist)
-            # Set number of mines in brick
-            self.bricks[coordinates].setTouching(touching)
+
 
 ####################################################################################################
 
@@ -50,7 +43,7 @@ class GameState():
 
             Inputs:     sizeX <int>
                         sizeY <int>
-            Outputs:    board <dict>
+            Outputs:    bricks <dict>
         """
         # Initialize bricks dict
         bricks = {}
@@ -72,7 +65,7 @@ class GameState():
 
 ####################################################################################################
 
-    def fillMines(self, sizeX, sizeY, mines):
+    def fillMines(self, sizeX, sizeY, mines, coord):
         """ Based on number of mines and size, picks random coordinates to place mines, and activates
             bricks as mines at those coordinates
 
@@ -81,6 +74,8 @@ class GameState():
                         mines <int>
             Outputs:    None
         """
+        # Get list of coordinates around the mine
+        checklist = self.surroundingCoordinates(coord[0], coord[1])
         # Number of mines added
         mineCount = 0
         # While number of mines is not the number requested
@@ -90,7 +85,7 @@ class GameState():
             # Get brick at those coordinates
             currentbrick = self.bricks[coordinates]
             # If brick at coordinate is not a bomb
-            if currentbrick.mine == False:
+            if currentbrick.mine == False and (coordinates != coord and coordinates not in checklist):
                 # Set brick to be a bomb
                 currentbrick.setMine()
                 # Increment bomb count
@@ -172,7 +167,7 @@ class GameState():
         """ Get the number of mines a brick is touching. Will check any list of coordinates
             surrounding a brick and count the number of mines touching
 
-            Inputs:     checklist [(<int>)]
+            Inputs:     checklist [(<int>, <int>)]
             Outputs:    count <int>
         """
         # Mine counter
@@ -189,10 +184,40 @@ class GameState():
 
 ####################################################################################################
 
+    def executeFirstMove(self, coordinate):
+        """ On the first move, a player should never click a mine. Uses the requested coordinates
+            to fill mines excluding the coordinate. Fills values for number of mines brick is
+            touching.
+
+            Inputs:     coordinate (<int>, <int>)
+            Outputs:    None
+        """
+        self.firstMove = False
+        # Filling the bricks in the board with mines
+        self.fillMines(self.sizeX, self.sizeY, self.mines, coordinate)
+        # For every brick in board
+        for coordinates in self.bricks:
+            # Get surrounding coordinates
+            checklist = self.surroundingCoordinates(coordinates[0], coordinates[1])
+            # Calculate the number of mines near
+            touching = self.getTouchingCount(checklist)
+            # Set number of mines in brick
+            self.bricks[coordinates].setTouching(touching)
+
+        # If touching no mines (should always be true)
+        if self.bricks[coordinate].touching == 0:
+            # click many
+            self.clickMany(coordinate)
+        # Otherwise click one brick 
+        else: self.clickBrick(coordinate)
+
+
+####################################################################################################
+
     def clickBrick(self, coordinate):
         """ Left click a brick. Checks for a win or loss.
 
-            Inputs:     coordinate (<int>)
+            Inputs:     coordinate (<int>, <int>)
             Outputs:    None
         """
         # Set brick as visible
@@ -203,8 +228,10 @@ class GameState():
         if self.bricks[coordinate].mine == True:
             # Lose game
             self.loseGame()
+
         # Check for win
         self.checkWin()
+
 
 ####################################################################################################
 
@@ -212,9 +239,15 @@ class GameState():
         """ Clicks several bricks. Called when an empty brick is clicked that is touching no mines.
             If a brick is empty, checks for all near by empty bricks and clicks them as well
 
-            Inputs:     coordinate (<int)
+            Inputs:     coordinate (<int>, <int>)
             Outputs:    None
         """
+        # If it is the first move
+        if self.firstMove:
+            # Execute first move
+            self.executeFirstMove(coordinate)
+            # Skip the rest of the function
+            return 0
         # A count of empty bricks
         emptyBricks = 0
         # List of bricks to click
@@ -259,7 +292,7 @@ class GameState():
     def flagBrick(self, coordinates):
         """ Flags a brick and updates flag count. Checks for win.
 
-            Inputs:     coordinates (<int>)
+            Inputs:     coordinates (<int>, <int>)
             Outputs     None
         """
         if not self.bricks[coordinates].visible:
@@ -278,8 +311,6 @@ class GameState():
             if self.flags == self.mines:
                 # Check for a win
                 self.checkWin()
-
-
 
 ####################################################################################################
 
