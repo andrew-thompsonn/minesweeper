@@ -34,6 +34,35 @@ class GameState():
         # Initializing game board (Holds all bricks and their information)
         self.bricks = self.createBoard(self.sizeX, self.sizeY)
 
+####################################################################################################
+
+    def loadGame(self, coordinates):
+        """ To load a current game, sets the visibility of bricks, flags bricks, and sets mines
+            according to saved game information
+
+            Inputs:     coordinates [[(<int>, <int>)]]
+            Outputs:    None
+        """
+        # Get visible bricks
+        visibleBricksCoords = coordinates[0]
+        # Get mine Coordinates
+        mineCoords = coordinates[1]
+        # Get flagged brick coordinates
+        flaggedBrickCoords = coordinates[2]
+        # For all mine coordinates
+        for coord in mineCoords:
+            # Set brick at coordinate as mine
+            self.bricks[coord].setMine()
+        # Set all bricks touching counts according to mine locations
+        self.fillTouchingCounts()
+        # For all visible bricks
+        for coord in visibleBricksCoords:
+            # Set the brick's visibility
+            self.bricks[coord].setVisibility(True)
+        # For all flagged bricks
+        for coord in flaggedBrickCoords:
+            # Flag the brick
+            self.flagBrick(coord)
 
 ####################################################################################################
 
@@ -92,6 +121,23 @@ class GameState():
                 mineCount += 1
                 # Save the coordinates of bomb (debugging only)
                 self.mineCoords.append(coordinates)
+
+####################################################################################################
+
+    def fillTouchingCounts(self):
+        """ Get the number of mines every brick is touching, and assign the bricks touchign count
+
+            Inputs:     None
+            Outputs:    None
+        """
+        # For every brick in board
+        for coordinates in self.bricks:
+            # Get surrounding coordinates
+            checklist = self.surroundingCoordinates(coordinates[0], coordinates[1])
+            # Calculate the number of mines near
+            touching = self.getTouchingCount(checklist)
+            # Set number of mines in brick
+            self.bricks[coordinates].setTouching(touching)
 
 ####################################################################################################
 
@@ -195,20 +241,14 @@ class GameState():
         self.firstMove = False
         # Filling the bricks in the board with mines
         self.fillMines(self.sizeX, self.sizeY, self.mines, coordinate)
-        # For every brick in board
-        for coordinates in self.bricks:
-            # Get surrounding coordinates
-            checklist = self.surroundingCoordinates(coordinates[0], coordinates[1])
-            # Calculate the number of mines near
-            touching = self.getTouchingCount(checklist)
-            # Set number of mines in brick
-            self.bricks[coordinates].setTouching(touching)
+        # Fill the number of mines each brick is touching
+        self.fillTouchingCounts()
 
         # If touching no mines (should always be true)
         if self.bricks[coordinate].touching == 0:
             # click many
             self.clickMany(coordinate)
-        # Otherwise click one brick 
+        # Otherwise click one brick
         else: self.clickBrick(coordinate)
 
 
@@ -383,7 +423,7 @@ class GameState():
 ####################################################################################################
 
     def printBoard(self):
-        """ Helper function to print the game board without using graphics """
+        """ Function to print ASCII version of game """
         #system('clear')
 
         # Print y axis
@@ -396,16 +436,16 @@ class GameState():
             # For all columns
             for yIndex in range(self.sizeY):
                 # If hidden and unflagged
-                if self.bricks[(xIndex, yIndex)].visible == False and self.bricks[(xIndex, yIndex)].flag == False:
+                if not self.bricks[(xIndex, yIndex)].visible and not self.bricks[(xIndex, yIndex)].flag:
                     print("[-] ", end = "")
                 # If hidden and flagged
-                elif self.bricks[(xIndex, yIndex)].visible == False and self.bricks[(xIndex, yIndex)].flag == True:
+                elif not self.bricks[(xIndex, yIndex)].visible and not self.bricks[(xIndex, yIndex)].flag:
                     print("[F] ", end = "")
                 # If visible and mine
-                elif self.bricks[(xIndex, yIndex)].visible == True and self.bricks[(xIndex, yIndex)].mine == True:
+                elif self.bricks[(xIndex, yIndex)].visible and self.bricks[(xIndex, yIndex)].mine:
                     print("(#) ", end = "")
                 # If visible and touching mines
-                elif self.bricks[(xIndex, yIndex)].visible == True and self.bricks[(xIndex, yIndex)].touching > 0:
+                elif self.bricks[(xIndex, yIndex)].visible and self.bricks[(xIndex, yIndex)].touching > 0:
                     print("|{}| ".format(self.bricks[(xIndex, yIndex)].touching), end = "")
                 # If visible and touching no mines
                 else:

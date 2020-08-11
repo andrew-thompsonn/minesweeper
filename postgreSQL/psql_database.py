@@ -27,7 +27,6 @@ class PsqlDatabase:
             # Create a connection to the database
             self.cxn = psql.connect(
                 host=self.host, database=self.database, port = self.port, user=self.user, password=self.password)
-            print("Opening Connections to database")
 
             # Create a cursor from the database connection
             self.cursor = self.cxn.cursor()
@@ -115,12 +114,16 @@ class PsqlDatabase:
         else:
             insertStr = "INSERT INTO game_info (gameid, playerid, difficulty, game_time, mines_left, win, status, played_against) "
             valueStr = "VALUES ({}, {}, '{}', '{}', {}, {}, {}, {});".format(gameID, playerID, difficulty, time, minesLeft, win, status, multiplayerFlag)
-        # Print insertion string
-        print("DATABASE INSERTION STRING:\n", insertStr + valueStr, "\n\n")
+
         # Execute the command
         self.cursor.execute(insertStr + valueStr)
         # Commit changes to the database
         self.commit()
+        # If a previously saved game has been completed delete the save
+        self.cursor.execute("delete from save_state where gameid = {};".format(gameID))
+        # Commit changes to the database
+        self.commit()
+
 
 ####################################################################################################
 
@@ -164,15 +167,10 @@ class PsqlDatabase:
 ####################################################################################################
 
     def selectSaves(self, name):
-        # 1. "select playerid from player_info where name = '{}';".format(name)
-        # 2. "select gameid from game_info where playerid = {} and status = 0;".format(playerID)
-        # 3. for gameid in gameIDs:
-        #         4. "select size, datetime from save_state where gameid = {};".format(gameID)
-
+        """ Retrieve information about all of a player's saved games """
         # Get player id from player name
         self.cursor.execute("select playerid from player_info where name = '{}';".format(name))
         playerID = int(self.cursor.fetchone()[0])
-
         # Get all player games that have been saved in progress
         self.cursor.execute("select gameid from game_info where playerid = {} and status = 0;".format(playerID))
         gameIDs = self.cursor.fetchall()
@@ -185,21 +183,78 @@ class PsqlDatabase:
             id = gameID[0]
             # Append it to the formatted game ids
             formattedGameIDs.append(id)
-
-        print("\n\n\n FORMATTED GAME IDS : {} \n\n\n".format(formattedGameIDs))
-
-        sizes = []
-        dates = []
-
+        # Initialize a list of save information s
         saveInfo = []
-
+        # For all gameIDs
         for gameID in formattedGameIDs:
-            self.cursor.execute("select size, to_char(datetime at time zone 'US/Mountain', 'HH24:MI:SS'), saveid from save_state where gameid = {};".format(gameID))
+            # Select size, date, and saveID
+            self.cursor.execute("select size, to_char(datetime at time zone 'US/Mountain', 'MM/DD/YYYY HH12:MI:SS AM'), saveid from save_state where gameid = {};".format(gameID))
+            # Get all saves for the game id
             savedGames = self.cursor.fetchall()
-
+            # Add information to save information list
             saveInfo.append(savedGames)
-
+        # Return the saved information
         return saveInfo
+
+####################################################################################################
+
+    def loadGame(self, saveID):
+        # Select information needed to init a game in progress
+        self.cursor.execute("select size, visible_Bricks, mine_locations, flag_locations, gameID from save_state where saveID = {};".format(saveID))
+        # fetch single
+        gameStateInformation = self.cursor.fetchone()
+
+        # Get difficulty based on size
+        size = gameStateInformation[0]
+        if size == "(10 x 10)":
+            difficulty = 0
+        elif size == "(16 x 16)":
+            difficulty = 1
+        else:
+            difficulty = 3
+
+        # Convert visible bricks to a list of tuples
+        visibleBrickCoords = []
+        for coordinate in gameStateInformation[1]:
+            visibleBrickCoords.append(tuple(coordinate))
+
+        # Convert mine coordinates to a list of tuples
+        mineCoords = []
+        for coordinate in gameStateInformation[2]:
+            mineCoords.append(tuple(coordinate))
+
+        # Convert flag coordinates to a list of tuples
+        flagCoords = []
+        for coordinate in gameStateInformation[3]:
+            flagCoords.append(tuple(coordinate))
+
+        gameID = int(gameStateInformation[4])
+
+        # Return game information
+        return difficulty, visibleBrickCoords, mineCoords, flagCoords, gameID
+
+####################################################################################################
+
+
+    def finishSavedGame(self, gameState, player, gameID, time):
+
+        # Deleter the save info
+        self.cursor.execute("Delete from save_state where gameID = {};".format(gameID))
+        self.commit()
+        # Get the old game time
+        self.cursor.execute("Select game_time from game_info where gameID = {};".format(gameID))
+        # Get the old game time
+        oldTime = float(self.cursor.fetchone()[0])
+        # Add to new game time
+        newTime = oldTime + time
+        print(newTime)
+
+        # Delete the game info
+        self.cursor.execute("Delete from game_info where gameID = {};".format(gameID))
+        self.commit()
+        # Update with new game info
+        self.insertGame(gameState, player, newTime, gameID)
+
 
 ####################################################################################################
 
@@ -229,7 +284,11 @@ class PsqlDatabase:
         # Select highest game id
         self.cursor.execute("SELECT gameID from game_info order by gameID desc limit 1;")
         # Get highest game id
-        currentGameID = int(self.cursor.fetchone()[0])
+        try:
+            currentGameID = int(self.cursor.fetchone()[0])
+        except TypeError as error:
+            currentGameID = 0
+
         # Increment by 1
         nextGameID = currentGameID + 1
         # Return next game id
@@ -240,7 +299,11 @@ class PsqlDatabase:
     def incrementSaveID(self):
         # Select Highest saveID
         self.cursor.execute("SELECT saveID from save_state order by saveID desc limit 1;")
-        currentSaveID = int(self.cursor.fetchone()[0])
+        try:
+            currentSaveID = int(self.cursor.fetchone()[0])
+        except TypeError as error:
+            currentSaveID = 0
+        print(currentSaveID)
         nextSaveID = currentSaveID + 1
         return nextSaveID
 

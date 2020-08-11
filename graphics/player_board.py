@@ -7,6 +7,8 @@ from graphics.button import Button
 import os
 import sys
 
+### Plan to make a generic board class and have ComputerBoard/PlayerBoard inherit it ###
+
 class PlayerBoard(QGridLayout):
     buttonLeftClick = pyqtSignal(object)
     buttonRightClick = pyqtSignal(object)
@@ -79,10 +81,10 @@ class PlayerBoard(QGridLayout):
 
             # If brick is a mine
             elif brick.mine:
-                button.setIcon(QIcon(os.path.join(sys.path[0], "images/bombIcon.png")))
+                button.setIcon(QIcon(os.path.join(sys.path[0], "graphics/images/bombIcon.png")))
                 button.setStyleSheet("background:white;border-width:1px;border-color:black;width:20px;height:20px;")
         elif not brick.visible and brick.flag:
-            button.setIcon(QIcon(os.path.join(sys.path[0], "images/flagIcon.png")))
+            button.setIcon(QIcon(os.path.join(sys.path[0], "graphics/images/flagIcon.png")))
         elif not brick.visible and not brick.flag:
             button.setIcon(QIcon())
 

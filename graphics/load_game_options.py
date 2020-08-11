@@ -11,10 +11,10 @@ class LoadGameOptions(QDialog):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        gameDatabase = PsqlDatabase()
-        gameDatabase.connectToDatabase()
-        self.names = gameDatabase.selectNames()
-        gameDatabase.selectSaves("Andrew")
+        self.gameDatabase = PsqlDatabase()
+        self.gameDatabase.connectToDatabase()
+        self.names = self.gameDatabase.selectNames()
+
 
         #-------------------------------------------------------------------------------------------
         # LAYOUTS
@@ -24,12 +24,13 @@ class LoadGameOptions(QDialog):
         titleLayout = QHBoxLayout()
         nameLayout = QHBoxLayout()
         buttonLayout = QHBoxLayout()
+        saveLayout = QVBoxLayout()
 
         #-------------------------------------------------------------------------------------------
         # WIDGETS
         #-------------------------------------------------------------------------------------------
         # Title
-        titleLabel = QLabel("Singleplayer")
+        titleLabel = QLabel("Load Game")
         titleLabel.setFont(QFont('Helvitica', 20))
 
         # Player information
@@ -39,6 +40,7 @@ class LoadGameOptions(QDialog):
         # Start cursor left
         self.nameLineEdit.setAlignment(Qt.AlignLeft)
 
+        self.saveGameList = QListWidget()
 
         # Submission button
         submitButton = QPushButton("Play")
@@ -61,8 +63,14 @@ class LoadGameOptions(QDialog):
         # Add submit button
         buttonLayout.addWidget(submitButton)
 
+        self.saveLabel = QLabel()
+        saveLayout.addWidget(self.saveLabel)
+        saveLayout.addWidget(self.saveGameList)
+        saveLayout.setSpacing(1)
+
         mainLayout.addLayout(titleLayout)
         mainLayout.addLayout(nameLayout)
+        mainLayout.addLayout(saveLayout)
         mainLayout.addLayout(buttonLayout)
 
         #-------------------------------------------------------------------------------------------
@@ -71,24 +79,48 @@ class LoadGameOptions(QDialog):
 
         self.nameLineEdit.textChanged.connect(self.checkName)
         submitButton.clicked.connect(self.sendConfiguration)
+        self.saveGameList.currentRowChanged.connect(self.rowChanged)
 
 
         self._exitCode = 1
     def checkName(self, name):
         if name in self.names:
-            self._exitCode = 0
             self.nameLineEdit.setStyleSheet("color:green")
+            self.saveLabel.setText("Detected saves for {}: ".format(self.nameLineEdit.text()))
+            self.fillList(name)
         else:
             self._exitCode = 1
+            self.saveLabel.setText("")
+            self.clearList()
             self.nameLineEdit.setStyleSheet("color:red")
 
+    def fillList(self, name):
+        self.saveGameList.clear()
+        self.savedGames = self.gameDatabase.selectSaves(name)
+
+        # If only one save game
+
+        self.saveIDs = []
+        for game in self.savedGames:
+            if game:
+                self.saveGameList.addItem("{}  {}  {}".format(game[0][2], game[0][1], game[0][0]))
+                self.saveIDs.append(game[0][2])
+
+    def rowChanged(self):
+        self._exitCode = 0
+
+    def clearList(self):
+        self.saveGameList.clear()
+
     def sendConfiguration(self):
-        config = 10
         if self._exitCode == 0:
+            saveID = self.saveIDs[self.saveGameList.currentRow() - 1]
+
+            config = 10
+            difficulty, visibleBrickCoords, mineCoords, flagCoords, gameID = self.gameDatabase.loadGame(saveID)
+            coordinates = [visibleBrickCoords, mineCoords, flagCoords, gameID]
+            configuration = [4, difficulty, coordinates]
             name = self.nameLineEdit.text()
             self.nameSignal.emit(name)
-
-            difficulty = self.difficultyBox.currentIndex()
-
-            self.configuration.emit([config, difficulty])
+            self.configuration.emit(configuration)
             self.close()

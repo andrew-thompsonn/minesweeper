@@ -14,11 +14,21 @@ import sys
 
 class GameDialog(QDialog):
 ####################################################################################################
-    def __init__(self, configuration, playerName, newGame = False, *args, **kwargs):
+    def __init__(self, configuration, playerName, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        #-------------------------------------------------------------------------------------------
+        # CONFIGURATION
+        #-------------------------------------------------------------------------------------------
+        coordinates = []
         # Get overall configuration
         self.config = configuration[0]
+        # If load game configuration (4)
+        if self.config == 4:
+            # Set configuration to single player
+            self.config = 1
+            # Get the key coordinates from configuration
+            coordinates = configuration[2]
 
         # A list of difficulties for the player and computer
         difficulties = []
@@ -69,7 +79,7 @@ class GameDialog(QDialog):
         compInfoLayout = QHBoxLayout()
 
         # Game Engine
-        self.engine = Engine(self.config, self.difficulties, computerSkill, playerName)
+        self.engine = Engine(self.config, self.difficulties, computerSkill, playerName, coordinates)
 
         # Get player board
         playerBoard = self.engine.playerBoard
@@ -90,7 +100,7 @@ class GameDialog(QDialog):
         startButton.setFixedHeight(30)
 
         # Flag Icon
-        flagCountIcon = QIcon(os.path.join(sys.path[0], "images/flagIcon.png"))
+        flagCountIcon = QIcon(os.path.join(sys.path[0], "graphics/images/flagIcon.png"))
 
         # Flag count(Player)
         flagCountLabel = QPushButton()
@@ -164,7 +174,6 @@ class GameDialog(QDialog):
             # Add player board to board layout
             boardLayout.addLayout(playerLayout)
 
-
         # If multi-player is selected
         elif self.config == 2:
             # Add player board to board layout
@@ -191,7 +200,6 @@ class GameDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # SIGNAL MANAGEMENT
         #-------------------------------------------------------------------------------------------
-
         # Connect changes in number of flags to handler
         self.engine.playerFlagNumberChanged.connect(self.handlePlayerFlagNumber)
         # Connect changes in number of flags to handler
@@ -300,7 +308,7 @@ class GameDialog(QDialog):
 ####################################################################################################
 
     def saveGame(self):
-        self.engine.setGameTime(self.timeString)
+        # Connecting the save button to the engines method for saving games
         self.engine.saveGame()
 
 ####################################################################################################
@@ -318,7 +326,6 @@ class GameDialog(QDialog):
 ####################################################################################################
 
     def startTime(self):
-
         # Start timer
         self.timer.start(1000)
 

@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         self.setFixedSize(600, 338)
 
         # Create moving background
-        self.movie = QMovie("images/movingMines.gif")
+        self.movie = QMovie("graphics/images/movingMines.gif")
         # Connect changes in background to repaint
         self.movie.frameChanged.connect(self.repaint)
         # Start the movie
@@ -123,19 +123,12 @@ class MainWindow(QMainWindow):
     def loadGameOptions(self):
         # Load game options dialog
         loadDialog = LoadGameOptions()
+        # Get player name
+        loadDialog.nameSignal.connect(self.setName)
         # Connect submission of load game to configuration
         loadDialog.configuration.connect(self.setConfiguration)
         # Execute dialog box
         loadDialog.exec()
-        # Dialog for game information
-        #       -Get player name
-        #       -Check database for game saves under player name
-        #       -Display options for game saves with configuration and
-        #        date/time
-        # Upon dialog accpetance
-        #       -Send configuration to new gameDialog with load game flag
-        #               - In gameDialog, pass configuration and load flag to engine
-        #               - Init correct gamestate and start graphics in engine
 
 ####################################################################################################
 

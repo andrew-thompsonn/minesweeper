@@ -1,57 +1,53 @@
 #!/usr/bin/env python3
-#2172
-from PyQt5.QtCore import QObject, pyqtSignal, QThread, QTimer
-from PyQt5.QtWidgets import QApplication
+# 3,406
 
 import time
 from random import randrange
 
+# Game Components
 from game_components.game_state import GameState
 from game_components.computer_player import ComputerPlayer
 from game_components.rules import Rules
 from game_components.player import Player
 
+# Graphics
 from graphics.computer_board import ComputerBoard
 from graphics.player_board import PlayerBoard
+from PyQt5.QtCore import QObject, pyqtSignal, QThread, QTimer
+from PyQt5.QtWidgets import QApplication
 
+# Database
 from postgreSQL.psql_database import PsqlDatabase
+
+####################################################################################################
 
 class Engine(QObject):
     """ A class to connect and manage signals between player/computer graphics, and insert the
         player's and computer's actions into their respective game states
     """
-
     # Signal for number of flags
     playerFlagNumberChanged = pyqtSignal(int)
     # Signal for number of computer flags
     computerFlagNumberChanged = pyqtSignal(int)
-
     # Signal for game win
     winGame = pyqtSignal(list)
     # Signal for game loss
     loseGame = pyqtSignal(list)
 
-
 ####################################################################################################
 
-    def __init__(self, config, difficulties, computerSkill, playerName, *args, **kwargs):
+    def __init__(self, config, difficulties, computerSkill, playerName, coordinates = [], *args, **kwargs):
         """ Initialize a player gameState, player board, computer game state, computer board,
-            according to the difficulties and skills selected.
+            according to the difficulties and skills selected. If the user requests to load a game
+            initialize a gamestate from load info.
 
             Inputs:     config <int>
                         difficulties [<int>]
                         computerSkill [<int>]
             Outputs:    None
         """
-
         # Initialize parent class
         super().__init__(*args, **kwargs)
-        # Get player difficulty
-        playerDifficulty = difficulties[0]
-        # Get computer difficulty
-        computerDifficulty = difficulties[1]
-        # make computerskill a class variable
-        self.computerSkill = computerSkill
         # Make config a class variable
         self.configuration = config
         # Initialize Rules
@@ -64,10 +60,28 @@ class Engine(QObject):
         self.gameDatabase = PsqlDatabase()
         # Connect to database
         self.gameDatabase.connectToDatabase()
-        # Player initialization
-        self.initPlayer(playerDifficulty, playerName, config)
+        # Get player difficulty
+        playerDifficulty = difficulties[0]
+        # Get computer difficulty
+        computerDifficulty = difficulties[1]
+        # make computerskill a class variable
+        self.computerSkill = computerSkill
+
         # Computer initialization
         self.initComputer(computerDifficulty, computerSkill, config)
+        # Player initialization
+        self.initPlayer(playerDifficulty, playerName, config)
+
+        # Default loadGameID to invalid value
+        self.loadGameID = 0
+        # If load game info was passed
+        if coordinates:
+            # Load the game into current gameState
+            self.playerGameState.loadGame(coordinates)
+            # Update the graphics
+            self.playerBoard.changeMany(self.playerGameState)
+            # Loaded game ID
+            self.loadGameID = coordinates[3]
 
         # If configuration is single or multiplayer
         if config == 1 or config == 2:
@@ -78,7 +92,8 @@ class Engine(QObject):
 
     def initPlayer(self, playerDifficulty, playerName, config):
         """ Initialize all aspects of a human player, including board, new gamestate, and player
-            profile. If player doesn't already exist in database add to database.
+            profile. If player doesn't already exist in database add to database. Run and
+            initialize player graphics
 
             Inputs:     playerDifficulty <int>
                         playerName <str>
@@ -98,14 +113,13 @@ class Engine(QObject):
 
             # Initialize a human player
             self.player = Player(playerName, True)
-            print("\n\n PLAYER NAME: {}\n\n".format(playerName))
             # Update database with players info
             self.gameDatabase.insertNewPlayer(playerName, True)
 
         # Initialize a player board
         self.playerBoard = None
         # Enable player board graphics
-        self.initGraphics(self.playerBoard, self.playerGameState, "human")
+        self.initGraphics(self.playerBoard, self.playerGameState, self.player.isHuman)
 
 ####################################################################################################
 
@@ -143,8 +157,7 @@ class Engine(QObject):
         # Initialize a computer board
         self.computerBoard = None
         # Enable computer board graphics
-        self.initGraphics(self.computerBoard, self.computerGameState, "computer")
-        print("Computer player name: {}\n{}'s skill: {}".format(self.computerPlayer.name, self.computerPlayer.name, computerSkill))
+        self.initGraphics(self.computerBoard, self.computerGameState, self.computerPlayer.isHuman)
         # Initialize computer rightclick queue
         self.rightClickQueue = []
         # Initialize computer left click queue
@@ -229,12 +242,15 @@ class Engine(QObject):
 
     def runAIOnly(self):
         """ Runs the AI by itself, as fast as it can go. Updates computer knowledge of the current
-            gamestate and commits actions the computer chooses
+            gamestate and commits actions the computer chooses. If computer can't produce a move
+            requests a guess from the computer
 
             Inputs:     None
             Outputs:    None
         """
+        # Start timer
         self.startTime = time.time()
+        # Get computer player
         computer = self.computerPlayer
         # Get first move
         coordinates = computer.first()
@@ -251,11 +267,13 @@ class Engine(QObject):
                 QApplication.processEvents()
                 # Commit action
                 self.commitComputerAction("rightclick", mine, self.computerGameState)
+                # If game over
                 if self.computerGameState.status != 0:
-
+                    # Exit loop
                     break
+            # If game over
             if self.computerGameState.status != 0:
-
+                # Exit loop
                 break
             # Get list of safe bricks
             safeBricks = computer.getSafeBricks(self.computerGameState)
@@ -265,11 +283,13 @@ class Engine(QObject):
                 QApplication.processEvents()
                 # Commit action
                 self.commitComputerAction("leftclick", brick, self.computerGameState)
+                # If game over
                 if self.computerGameState.status != 0:
-
+                    # Exit loop
                     break
+            # If game over
             if self.computerGameState.status != 0:
-
+                # Exit loop
                 break
             # If no logical moves
             if not safeBricks and not mines:
@@ -280,8 +300,9 @@ class Engine(QObject):
                     # Get a probabilistic guess
                     coordinates, prob = computer.probability(self.computerGameState)
                     print("Guessing {} with probability of {}".format(coordinates, prob))
-
+                # Commit guess
                 self.commitComputerAction("leftclick", coordinates, self.computerGameState)
+                # Handle evenets
                 QApplication.processEvents()
 
 ####################################################################################################
@@ -313,7 +334,6 @@ class Engine(QObject):
                     gameState.clickBrick(coordinate)
                     # Change single brick in board
                     self.computerBoard.changeBrick([coordinate, self.computerGameState])
-
         # If action is a right click
         if type == "rightclick":
             # Check rules
@@ -324,29 +344,36 @@ class Engine(QObject):
                 self.computerFlagNumberChanged.emit(self.computerGameState.flags)
                 # Change single brick in board
                 self.computerBoard.changeBrick([coordinate, self.computerGameState])
-
         # If game is won
         if gameState.status == 1:
+            # Change many bricks in board
+            self.computerBoard.changeMany(self.computerGameState)
             # Get time at end of game
             self.endTime = time.time()
             # Document player as losing (Only matters if multiplayer enabled )
             self.playerGameState.status = 2
             # Calculate total time
-            self.gameTime = self.convertTime(self.endTime - self.startTime)
+            self.gameTime = self.endTime - self.startTime
+            # Format into string to display to user
+            strTime = self.convertTime(self.gameTime)
             # Emit win signal
-            self.winGame.emit([self.gameTime, "computer "+self.computerPlayer.name])
+            self.winGame.emit([strTime, "computer "+self.computerPlayer.name])
             # Commit computer game into database
             self.insertGameIntoDatabase(self.computerGameState, self.computerPlayer)
         # If game is lost
         elif gameState.status == 2:
+            # Change many bricks in board
+            self.computerBoard.changeMany(self.computerGameState)
             # Get time at end of game
             self.endTime = time.time()
             # Document player as winning (Only matters if multiplayer enabled )
             self.playerGameState.status = 1
             # Calculate total time
-            self.gameTime = self.convertTime(self.endTime - self.startTime)
+            self.gameTime = self.endTime - self.startTime
+            # Format into string to display to user
+            strTime = self.convertTime(self.gameTime)
             # Emit lose signal
-            self.loseGame.emit([self.gameTime, "computer "+self.computerPlayer.name])
+            self.loseGame.emit([strTime, "computer "+self.computerPlayer.name])
             # Commit computer game into database
             self.insertGameIntoDatabase(self.computerGameState, self.computerPlayer)
 
@@ -354,7 +381,8 @@ class Engine(QObject):
 
     def commitPlayerClick(self, coordinates):
         """ Commit left click actions from the player into the player's game state. Checks for
-            a player win/loss
+            a player win/loss. If game is won/lost, emit win/lose game signal and stop the game
+            timer.
 
             Inputs:     coordinates (<int>, <int>)
             Outputs:    None
@@ -375,26 +403,34 @@ class Engine(QObject):
 
         # if game is won
         if self.playerGameState.status == 1:
+            # Change many bricks in board
+            self.playerBoard.changeMany(self.playerGameState)
             # Get time at end of game
             self.endTime = time.time()
-            # Make sure the computer is documented as losing (only matters if multiplayer configuration)
+            # Document computer as losing (only matters if multiplayer enabled)
             self.computerGameState.status = 2
             # Calculate total time
-            self.gameTime = self.convertTime(self.endTime - self.startTime)
+            self.gameTime = self.endTime - self.startTime
+            # Format into string to display to user
+            strTime = self.convertTime(self.gameTime)
             # Emit win signal
-            self.winGame.emit([self.gameTime, self.player.name])
+            self.winGame.emit([strTime, self.player.name])
             # Commit player game to database
             self.insertGameIntoDatabase(self.playerGameState, self.player)
         # If game is lost
         elif self.playerGameState.status == 2:
+            # Change many bricks in board
+            self.playerBoard.changeMany(self.playerGameState)
             # Get time at end of game
             self.endTime = time.time()
-            # Make sure the computer is documented as winning (only matters if multiplayer configuration)
+            # Document computer as winning (only matters if multiplayer enabled)
             self.computerGameState.status = 1
             # Calculate total time
-            self.gameTime = self.convertTime(self.endTime - self.startTime)
-            # Emit lose signal
-            self.loseGame.emit([self.gameTime, self.player.name])
+            self.gameTime = self.endTime - self.startTime
+            # Format into string to display to user
+            strTime = self.convertTime(self.gameTime)
+            # Emit win signal
+            self.loseGame.emit([strTime, self.player.name])
             # Commit player game to database
             self.insertGameIntoDatabase(self.playerGameState, self.player)
 
@@ -402,7 +438,8 @@ class Engine(QObject):
 
     def commitPlayerFlag(self, coordinates):
         """ Commits action for a player right click into the player's game state. Checks for
-            a player win
+            a player win.  If game is won/lost, emit win/lose game signal and stop the game
+            timer.
 
             Inputs:     coordinates (<int>, <int>)
             Outputs:    None
@@ -418,20 +455,25 @@ class Engine(QObject):
 
         # If game is won
         if self.playerGameState.status == 1:
+            # Change many bricks in board
+            self.playerBoard.changeMany(self.playerGameState)
             # Get time at end of game
             self.endTime = time.time()
             # Calculate total time
-            self.gameTime = self.convertTime(self.endTime - self.startTime)
+            self.gameTime = self.endTime - self.startTime
+            # Format into string to display to user
+            strTime = self.convertTime(self.gameTime)
             # Emit win signal
-            self.winGame.emit([self.gameTime, self.player.name])
+            self.winGame.emit([strTime, self.player.name])
             # Commit player win to database
             self.insertGameIntoDatabase(self.playerGameState, self.player)
 
 ####################################################################################################
 
-    def initGraphics(self, board, gameState, playerType):
+    def initGraphics(self, board, gameState, human):
         """ Initialize the graphical representation for the game state of the requested player
-            type.
+            type. Connect signals from the player board to engine methods for commiting player
+            clicks and flags to the gamestate
 
             Inputs:     board <Board>
                         gameState <GameState>
@@ -439,14 +481,13 @@ class Engine(QObject):
             Outputs:    None
         """
         # If computer player
-        if playerType == "computer":
+        if not human:
             # Initialize computer board
-            self.computerBoard = ComputerBoard(gameState, playerType)
+            self.computerBoard = ComputerBoard(gameState, "computer")
         # If human player
-        elif playerType == "human":
-            print("Initializing player graphics")
+        elif human:
             # Initialize human board
-            self.playerBoard = PlayerBoard(gameState, playerType)
+            self.playerBoard = PlayerBoard(gameState, "human")
             # Connect left click signal
             self.playerBoard.buttonLeftClick.connect(self.commitPlayerClick)
             # Connect right click signal
@@ -456,15 +497,23 @@ class Engine(QObject):
 
     def insertGameIntoDatabase(self, gameState, player):
         """ Inserts game information into game_info table in database. Depending on configuration,
-            will call the PsqlDatabase.insertGame() method one or multiple times
+            will call the PsqlDatabase.insertGame() method one or multiple times. If the current
+            game was loaded from a previous one, will call the finishSavedGame() method to
+            update the database appropriately
 
             Inputs:     gameState <GameState>
                         player    <Player>
             Outputs:    None
         """
-        time = self.gameTime
+        print("INSERTING NEW GAME INTO DATABASE... ")
+        # Get time value
+        time = round(self.gameTime, 3)
+        # If there was a loaded game
+        if self.loadGameID != 0:
+            # Update the database to finish a loaded game
+            self.gameDatabase.finishSavedGame(gameState, self.player, self.loadGameID, time)
         # If multiplayer is enabled
-        if self.configuration == 2:
+        elif self.configuration == 2:
             # Get gameID for computer
             compGameID = self.gameDatabase.incrementGameID()
             # Get gameID for player
@@ -473,34 +522,43 @@ class Engine(QObject):
             playerAgainstID = compGameID
             # playing against player
             compAgainstID = playerGameID
-            # Time
-            time = self.gameTime
-            # # Insert computer
-            # self.gameDatabase.insertGame(self.computerGameState, self.computerPlayer, time, compGameID, compAgainstID)
-            # # Insert player
-            # self.gameDatabase.insertGame(self.playerGameState, self.player, time, playerGameID, playerAgainstID)
+            # Insert computer
+            self.gameDatabase.insertGame(self.computerGameState,self.computerPlayer,time,compGameID,compAgainstID)
+            # Insert player
+            self.gameDatabase.insertGame(self.playerGameState,self.player,time,playerGameID,playerAgainstID)
         # Otherwise insert the desired player and game into db
         else:
             # Get game ID
             gameID = self.gameDatabase.incrementGameID()
-            # # Insert into database
-            # self.gameDatabase.insertGame(gameState, player, time, gameID)
+            # Insert into database
+            self.gameDatabase.insertGame(gameState, player, time, gameID)
+        print("done")
 
 ####################################################################################################
 
     def saveGame(self):
-        """ Helper method to connect to correct database insertion method """
-        gameState = self.playerGameState
-        player = self.player
-        time = 0
+        """ Inserts a game in progress that the user has saved into the database.
 
-        self.gameDatabase.insertSave(gameState, time, player)
-        print("Inserting in progress gameState into database")
+            Inputs:     None
+            Outputs:    None
+        """
+        print("SAVING GAME ...")
+        # Get player gamestate
+        gameState = self.playerGameState
+        # Get player info
+        player = self.player
+        # Get end time
+        self.endTime = time.time()
+        # Calculate total time
+        self.gameTime = self.convertTime(self.endTime - self.startTime)
+        # Save the game to the database
+        self.gameDatabase.insertSave(gameState, self.gameTime, player)
 
 ####################################################################################################
 
     def convertTime(self, time):
-        """ Convert the game time from seconds to minutes/seconds/milliseconds.
+        """ Convert the game time from seconds to minutes/seconds/milliseconds. Create a string to
+            represent the game time for the user.
 
             Inputs:     time <int>
             Outputs     timeString <str>
@@ -512,11 +570,11 @@ class Engine(QObject):
         # If time greater than a minute
         elif time >= 60:
             # Calculate minutes
-            minutes = int(rount(time / 60))
+            minutes = int(round(time / 60))
             # Calculate seconds
             seconds = round(time % 60, 3)
             # Create string representing time
-            timeString = str(minutes)+"."+str(seconds)
+            timeString = str(minutes)+":"+str(seconds)
         # Otherwise time is less than a minute
         else:
             # Calculate seconds

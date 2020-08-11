@@ -16,11 +16,11 @@ class StartScreen(QWidget):
         # Main Layout
         mainLayout = QVBoxLayout(self)
         mainLayout.setAlignment(Qt.AlignTop)
-        mainLayout.setSpacing(40)
+        mainLayout.setSpacing(5)
         # Title layout
         titleLayout = QVBoxLayout()
         # button layout
-        buttonLayout = QHBoxLayout()
+        buttonLayout = QVBoxLayout()
 
         # Set orientation of title layout
         titleLayout.setAlignment(Qt.AlignHCenter)
@@ -28,10 +28,8 @@ class StartScreen(QWidget):
         titleLayout.setSpacing(1)
 
         # Set orientation of button layout
-        buttonLayout.setAlignment(Qt.AlignLeft)
+        buttonLayout.setAlignment(Qt.AlignHCenter)
         buttonLayout.setSpacing(10)
-
-
 
         #-------------------------------------------------------------------------------------------
         # WIDGETS
@@ -59,17 +57,17 @@ class StartScreen(QWidget):
         # Button for single player options
         self.singlePlayerButton = QPushButton("Singleplayer")
         self.singlePlayerButton.setStyleSheet("background:rgba(100, 100, 125, 0.7);")
-        self.singlePlayerButton.setFixedSize(195, 50)
+        self.singlePlayerButton.setFixedSize(195, 35)
 
         # Button for multiplayer options
         self.multiPlayerButton = QPushButton("Multiplayer")
         self.multiPlayerButton.setStyleSheet("background:rgba(100, 100, 125, 0.7);")
-        self.multiPlayerButton.setFixedSize(195, 50)
+        self.multiPlayerButton.setFixedSize(195, 35)
 
         # Button for loading previous saves
         self.watchButton = QPushButton("Watch")
         self.watchButton.setStyleSheet("background:rgba(100, 100, 125, 0.7);")
-        self.watchButton.setFixedSize(195, 50)
+        self.watchButton.setFixedSize(195, 35)
 
         #-------------------------------------------------------------------------------------------
         # LAYOUT MANAGEMENT
