@@ -111,10 +111,10 @@ class Engine(QObject):
             # Initialize a player gamestate
             self.playerGameState = GameState(sizeX, sizeY, mines)
 
-            # Initialize a human player
-            self.player = Player(playerName, True)
-            # Update database with players info
-            self.gameDatabase.insertNewPlayer(playerName, True)
+        # Initialize a human player
+        self.player = Player(playerName, True)
+        # Update database with players info
+        self.gameDatabase.insertNewPlayer(playerName, True)
 
         # Initialize a player board
         self.playerBoard = None
