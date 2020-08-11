@@ -12,9 +12,9 @@ CREATE TABLE Player_Info (
 CREATE TABLE Game_Info (
     GameID INTEGER NOT NULL,
     PlayerID integer NOT NULL,
-    Difficlty varchar(50) NOT NULL,
+    Difficulty varchar(50) NOT NULL,
     Game_Time varchar(10) NOT NULL,/* -> Planning on changing this to NUMERIC(4, 3) */
-    Mines integer NOT NULL,
+    Mines_left integer NOT NULL,
     Win boolean,
     status integer NOT NULL,
     PRIMARY KEY(GameId),
@@ -28,6 +28,7 @@ CREATE TABLE Save_State (
     Mine_Locations integer[] NOT NULL,
     flag_locations integer[] NOT NULL,
     GameID integer NOT NULL,
+    datetime TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (SaveId),
     FOREIGN KEY (GameID) REFERENCES Game_Info(GameID)
 );
