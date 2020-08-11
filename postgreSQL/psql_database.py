@@ -247,8 +247,6 @@ class PsqlDatabase:
         oldTime = float(self.cursor.fetchone()[0])
         # Add to new game time
         newTime = oldTime + time
-        print(newTime)
-
         # Delete the game info
         self.cursor.execute("Delete from game_info where gameID = {};".format(gameID))
         self.commit()
@@ -303,7 +301,6 @@ class PsqlDatabase:
             currentSaveID = int(self.cursor.fetchone()[0])
         except TypeError as error:
             currentSaveID = 0
-        print(currentSaveID)
         nextSaveID = currentSaveID + 1
         return nextSaveID
 

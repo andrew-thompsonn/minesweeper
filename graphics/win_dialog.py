@@ -1,9 +1,13 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QLineEdit, QCheckBox, QTextEdit
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 
 class WinDialog(QDialog):
     def __init__(self, name, difficultyNum, time, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+
+        self.setFixedSize(250, 150)
 
         self.name = name
         if difficultyNum == 0:
@@ -17,6 +21,7 @@ class WinDialog(QDialog):
         # LAYOUTS
         #-------------------------------------------------------------------------------------------
         mainLayout = QVBoxLayout(self)
+        titleLayout = QHBoxLayout()
         textLayout = QHBoxLayout()
         statLayout = QVBoxLayout()
         buttonLayout = QHBoxLayout()
@@ -24,8 +29,11 @@ class WinDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # WIDGETS
         #-------------------------------------------------------------------------------------------
+        title = QLabel("WIN")
+        title.setFont(QFont('Ariel', 14))
+
         # Label to declare winner
-        congratsLabel = QLabel(self.name + " wins!")
+        congratsLabel = QLabel("Player: "+self.name)
 
         # Game info
 
@@ -39,11 +47,13 @@ class WinDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # LAYOUT MANAGEMENT
         #-------------------------------------------------------------------------------------------
+        titleLayout.addWidget(title)
         textLayout.addWidget(congratsLabel)
         statLayout.addWidget(difficultyLabel)
         statLayout.addWidget(timeLabel)
         buttonLayout.addWidget(closeButton)
 
+        mainLayout.addLayout(titleLayout)
         mainLayout.addLayout(textLayout)
         mainLayout.addLayout(statLayout)
         mainLayout.addLayout(buttonLayout)

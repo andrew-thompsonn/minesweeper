@@ -1,9 +1,12 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QLineEdit, QCheckBox, QTextEdit
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 
 class LoseDialog(QDialog):
     def __init__(self, name, difficultyNum, time, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+        self.setFixedSize(250, 150)
 
         self.name = name
         if difficultyNum == 0:
@@ -25,7 +28,8 @@ class LoseDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # WIDGETS
         #-------------------------------------------------------------------------------------------
-        title = QLabel("Loss")
+        title = QLabel("LOSS")
+        title.setFont(QFont('Ariel', 14))
 
         # Label to declare winner
         congratsLabel = QLabel("Player: "+self.name)

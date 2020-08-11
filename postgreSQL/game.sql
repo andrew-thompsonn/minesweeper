@@ -17,6 +17,7 @@ CREATE TABLE Game_Info (
     Mines_left integer NOT NULL,
     Win boolean,
     status integer NOT NULL,
+    played_against integer,
     PRIMARY KEY(GameId),
     FOREIGN KEY(PlayerID) REFERENCES Player_Info(PlayerID)
 );

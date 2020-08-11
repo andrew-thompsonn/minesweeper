@@ -99,6 +99,7 @@ class Engine(QObject):
                         playerName <str>
             Outputs:    None
         """
+
         # If watch AI only is enabled
         if config == 3:
             # Initialize a default player game state
@@ -108,14 +109,14 @@ class Engine(QObject):
             sizeX = self.boardProperties[playerDifficulty][0]
             sizeY = self.boardProperties[playerDifficulty][1]
             mines = self.boardProperties[playerDifficulty][2]
+
             # Initialize a player gamestate
             self.playerGameState = GameState(sizeX, sizeY, mines)
+            # Update database with players info
+            self.gameDatabase.insertNewPlayer(playerName, True)
 
         # Initialize a human player
         self.player = Player(playerName, True)
-        # Update database with players info
-        self.gameDatabase.insertNewPlayer(playerName, True)
-
         # Initialize a player board
         self.playerBoard = None
         # Enable player board graphics
@@ -132,6 +133,7 @@ class Engine(QObject):
                         computerSkill      <int>
             Outputs:    None
         """
+
         # If computer is not active
         if computerDifficulty == None:
             # Initialize a computer gameState
@@ -232,11 +234,11 @@ class Engine(QObject):
         # If computer skill is medium
         elif computerSkill == 1:
             # Start timer with 1 move every 0.75 seconds
-            self.timer.start(750)
+            self.timer.start(600)
         # If computer skill is good
         else:
             # Start timer with 1 move every 0.5 second
-            self.timer.start(500)
+            self.timer.start(300)
 
 ####################################################################################################
 

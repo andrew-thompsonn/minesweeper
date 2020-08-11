@@ -43,12 +43,18 @@ class GameState():
             Inputs:     coordinates [[(<int>, <int>)]]
             Outputs:    None
         """
+
+        # Assume it is not the first move
+        self.firstMove = False
         # Get visible bricks
         visibleBricksCoords = coordinates[0]
         # Get mine Coordinates
         mineCoords = coordinates[1]
         # Get flagged brick coordinates
         flaggedBrickCoords = coordinates[2]
+        # Fill class data with loaded mine coords
+        self.mineCoords = mineCoords
+
         # For all mine coordinates
         for coord in mineCoords:
             # Set brick at coordinate as mine
@@ -114,7 +120,7 @@ class GameState():
             # Get brick at those coordinates
             currentbrick = self.bricks[coordinates]
             # If brick at coordinate is not a bomb
-            if currentbrick.mine == False and (coordinates != coord and coordinates not in checklist):
+            if not currentbrick.mine and (coordinates != coord and coordinates not in checklist):
                 # Set brick to be a bomb
                 currentbrick.setMine()
                 # Increment bomb count
@@ -439,7 +445,7 @@ class GameState():
                 if not self.bricks[(xIndex, yIndex)].visible and not self.bricks[(xIndex, yIndex)].flag:
                     print("[-] ", end = "")
                 # If hidden and flagged
-                elif not self.bricks[(xIndex, yIndex)].visible and not self.bricks[(xIndex, yIndex)].flag:
+                elif not self.bricks[(xIndex, yIndex)].visible and self.bricks[(xIndex, yIndex)].flag:
                     print("[F] ", end = "")
                 # If visible and mine
                 elif self.bricks[(xIndex, yIndex)].visible and self.bricks[(xIndex, yIndex)].mine:

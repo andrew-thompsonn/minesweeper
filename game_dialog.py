@@ -310,6 +310,7 @@ class GameDialog(QDialog):
     def saveGame(self):
         # Connecting the save button to the engines method for saving games
         self.engine.saveGame()
+        self.close()
 
 ####################################################################################################
 

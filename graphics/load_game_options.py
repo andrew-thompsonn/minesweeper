@@ -15,7 +15,6 @@ class LoadGameOptions(QDialog):
         self.gameDatabase.connectToDatabase()
         self.names = self.gameDatabase.selectNames()
 
-
         #-------------------------------------------------------------------------------------------
         # LAYOUTS
         #-------------------------------------------------------------------------------------------
