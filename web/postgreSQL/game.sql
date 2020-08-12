@@ -13,7 +13,7 @@ CREATE TABLE Game_Info (
     GameID INTEGER NOT NULL,
     PlayerID integer NOT NULL,
     Difficulty varchar(50) NOT NULL,
-    Game_Time varchar(10) NOT NULL,/* -> Planning on changing this to NUMERIC(4, 3) */
+    Game_Time varchar(20) NOT NULL,/* -> Planning on changing this to NUMERIC(4, 3) */
     Mines_left integer NOT NULL,
     Win boolean,
     status integer NOT NULL,

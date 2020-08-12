@@ -29,7 +29,7 @@ class ComputerPlayer(Player):
 ####################################################################################################
 
     def getName(self, skill):
-        names = {0:'george', 1:'Tom', 2:'Lola', 3:'Chuck Norris', 69:None}
+        names = {0:'Computer_1', 1:'Computer_2', 2:'Computer_3', 3:'Computer', 69:None}
         name = names[skill]
         return name
 

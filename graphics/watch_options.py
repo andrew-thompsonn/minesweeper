@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import QComboBox, QPushButton, QFrame, QLineEdit, QCheckBox
 from PyQt5.QtGui import QIcon, QFont, QImage, QPalette, QBrush
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
-from postgreSQL.psql_database import PsqlDatabase
 
 class WatchOptions(QDialog):
     configuration = pyqtSignal(object)
@@ -11,15 +10,19 @@ class WatchOptions(QDialog):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.setFixedSize(315, 200)
         #-------------------------------------------------------------------------------------------
         # LAYOUTS
         #-------------------------------------------------------------------------------------------
         mainLayout = QVBoxLayout(self)
-        mainLayout.setSpacing(50)
+        mainLayout.setSpacing(20)
         titleLayout = QHBoxLayout()
         nameLayout = QHBoxLayout()
+        nameLayout.setSpacing(0)
         optionsLayout = QHBoxLayout()
+        optionsLayout.setSpacing(0)
         buttonLayout = QHBoxLayout()
+        buttonLayout.setSpacing(0)
 
         #-------------------------------------------------------------------------------------------
         # WIDGETS
@@ -28,22 +31,24 @@ class WatchOptions(QDialog):
         titleLabel = QLabel("Watch the Computer")
         titleLabel.setFont(QFont('Helvitica', 20))
 
-
-
         # Combo box for difficulty selection
         self.difficultyBox = QComboBox()
+        self.difficultyBox.setFixedWidth(180)
         # Options for difficulty
         difficulties = ["Easy (10x10, 10 Mines)","Medium (16x16, 40 Mines)","Hard (16x30, 99 Mines)"]
         # Adding dificulty items
         self.difficultyBox.addItems(difficulties)
         # Label for combo box
         difficultyLabel = QLabel("Select a difficulty")
+        difficultyLabel.setFixedWidth(120)
 
 
         # Submission button
         submitButton = QPushButton("Watch")
+        submitButton.setFixedWidth(180)
         # Submission Label
         submitLabel = QLabel("Ready?")
+        submitLabel.setFixedWidth(120)
 
         #-------------------------------------------------------------------------------------------
         # LAYOUT MANAGEMENT

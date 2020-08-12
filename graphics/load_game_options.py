@@ -3,13 +3,15 @@ from PyQt5.QtWidgets import QPushButton, QFrame, QLineEdit, QCheckBox, QTextEdit
 from PyQt5.QtGui import QIcon, QFont, QImage, QPalette, QBrush
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
-from postgreSQL.psql_database import PsqlDatabase
+from web.postgreSQL.psql_database import PsqlDatabase
 
 class LoadGameOptions(QDialog):
     configuration = pyqtSignal(object)
     nameSignal = pyqtSignal(object)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.setFixedSize(315, 350)
 
         self.gameDatabase = PsqlDatabase()
         self.gameDatabase.connectToDatabase()
@@ -19,7 +21,7 @@ class LoadGameOptions(QDialog):
         # LAYOUTS
         #-------------------------------------------------------------------------------------------
         mainLayout = QVBoxLayout(self)
-        mainLayout.setSpacing(50)
+        mainLayout.setSpacing(20)
         titleLayout = QHBoxLayout()
         nameLayout = QHBoxLayout()
         buttonLayout = QHBoxLayout()
@@ -113,7 +115,7 @@ class LoadGameOptions(QDialog):
 
     def sendConfiguration(self):
         if self._exitCode == 0:
-            saveID = self.saveIDs[self.saveGameList.currentRow() - 1]
+            saveID = self.saveIDs[self.saveGameList.currentRow()]
 
             config = 10
             difficulty, visibleBrickCoords, mineCoords, flagCoords, gameID = self.gameDatabase.loadGame(saveID)

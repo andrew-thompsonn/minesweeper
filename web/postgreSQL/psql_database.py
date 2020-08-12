@@ -64,8 +64,6 @@ class PsqlDatabase:
         names = self.selectNames()
         # If player is already in databases
         if name in names or name == None:
-            # Print status message
-            print("Player already in database")
             # Return nothing
             return 0
         print("Adding {} as new player. Welcome {}!".format(name, name))
@@ -127,12 +125,22 @@ class PsqlDatabase:
 
 ####################################################################################################
 
-    def insertSave(self, gameState, time, player):
+    def insertSave(self, gameState, time, player, loadGameID = None):
         """ Insert game data into the database for a game in progress """
-        # Create new game ID
-        gameID = self.incrementGameID()
-        # Create instance of in progress game in game_info table
-        self.insertGame(gameState, player, time, gameID)
+        # If game was not loaded
+        if loadGameID == None:
+            # Create new game ID
+            gameID = self.incrementGameID()
+            # Create instance of in progress game in game_info table
+            self.insertGame(gameState, player, time, gameID)
+        # Otherwise,
+        else:
+            # Use the loaded game id
+            gameID = loadGameID
+            # Delete the old save
+            self.cursor.execute("DELETE FROM save_state where gameID = {};".format(gameID))
+            # Commit to db
+            self.commit()
         # Create string to represent size
         size = "("+str(gameState.sizeX)+" x "+str(gameState.sizeY)+")"
         # Create new save id
@@ -276,6 +284,83 @@ class PsqlDatabase:
         # Return array string
         return arrayString
 
+
+####################################################################################################
+
+    def getSinglePlayerScores(self):
+        # Difficulties in database
+        difficulties = ['(10, 10)', '(16, 16)', '(16, 30)']
+        # Get easy names and times
+        easyData = self.getScores(True, difficulties[0])
+        # Get medium names and times
+        mediumData = self.getScores(True, difficulties[1])
+        # Get hard names and times
+        hardData = self.getScores(True, difficulties[2])
+
+        return easyData, mediumData, hardData
+
+####################################################################################################
+
+    def getAIScores(self):
+        # Difficulties in database
+        difficulties = ['(10, 10)', '(16, 16)', '(16, 30)']
+        # Easy names and times
+        easyData = self.getScores(False, difficulties[0])
+        # Medium names and times
+        mediumData = self.getScores(False, difficulties[1])
+        # Hard names and times
+        hardData = self.getScores(False, difficulties[2])
+
+        return easyData, mediumData, hardData
+
+####################################################################################################
+
+    def getScores(self, isHuman, difficulty):
+        # Query to get names and times in ascending order for specific type of player
+        self.cursor.execute("select name, game_time from player_info inner join game_info on game_info.playerID = player_info.playerID where type = {} and difficulty = '{}' and win = True and played_against is NULL order by game_time asc limit 5;".format(isHuman, difficulty))
+        # Get all 5 names and times
+        games = self.cursor.fetchall()
+        # Initialize a list of data
+        data = []
+        # For all gamess
+        for game in games:
+            # Add name and time to data
+            name = game[0]
+            time = float(game[1])
+            timeString = self.getTimeString(time)
+            data.append([name, timeString])
+            print(type(float(game[1])), float(game[1]))
+        # Return names and times
+        return data
+
+####################################################################################################
+
+    def getMultiplayerScores(self):
+        """ Select Multiplayer times """
+        # A select name, game_time, difficulty, gameid from game_info inner join player_info on game_info.playerid = player_info.playerid where win = True and played_against is not null;
+        self.cursor.execute("select name, game_time, difficulty, gameid from game_info inner join player_info on game_info.playerid = player_info.playerid where win = True and played_against is not null;")
+        winners = self.cursor.fetchall()
+
+        losers = []
+        for winner in winners:
+            gameID = winner[3]
+            self.cursor.execute("select name, difficulty from game_info inner join player_info on game_info.playerid = player_info.playerid where win = False and played_against = {};".format(gameID))
+            loser = self.cursor.fetchone()
+            losers.append(loser)
+
+        print(winners)
+        print(losers)
+
+        # Winner    Winner diff     Loser   LoserDiff   time
+        multiPlayerData = []
+        for index in range(len(winners)):
+            winner = winners[index]
+            loser = losers[index]
+            multiPlayerData.append([winner[0], winner[2], loser[0], loser[1], self.getTimeString(float(winner[1]))])
+
+        return multiPlayerData
+
+
 ####################################################################################################
 
     def incrementGameID(self):
@@ -303,5 +388,48 @@ class PsqlDatabase:
             currentSaveID = 0
         nextSaveID = currentSaveID + 1
         return nextSaveID
+
+####################################################################################################
+
+    def getTimeString(self, time):
+        """ Convert the game time from seconds to minutes/seconds/milliseconds. Create a string to
+            represent the game time for the user.
+
+            Inputs:     time <float>
+            Outputs     timeString <str>
+        """
+        # If time is over an hour
+        if time > 3600:
+            # User needs to spend less time watching tv.
+            timeString = "1+ hours"
+        # If time greater than a minute
+        elif time >= 60:
+            # Calculate minutes
+            minutes = int(round(time / 60))
+            # Calculate seconds
+            seconds = round(time % 60, 3)
+
+        # Otherwise time is less than a minute
+        else:
+            minutes = 0
+            # Calculate seconds
+            seconds = round(time % 60, 3)
+
+
+        secondString = str(seconds)
+        if seconds < 10:
+            secondString = "0"+str(seconds)
+        if seconds < 1:
+            secondString == "00"+str(seconds)
+        minuteString = str(minutes)
+        if minutes < 10:
+            minuteString = "0"+str(minutes)
+        if minutes < 1:
+            minuteString = "00"
+        # Create string representing time
+        timeString = minuteString+":"+secondString
+
+        # Return the time string
+        return timeString
 
 ####################################################################################################

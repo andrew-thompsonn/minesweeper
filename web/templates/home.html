@@ -2,7 +2,8 @@
 <html>
   <head>
     <title>Minesweeper Improved</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <script src="../static/js/openTable.js"></script>
   </head>
   <body>
     <header class = "Title">
@@ -11,28 +12,63 @@
         <nav>
           <ul class = "nav">
             <li><a href = "/">Home</a></li>
-            <li><a href = "">Scores</a></li>
-            <li><a href = "">About</a></li>
+            <li><a href = "/scores">Scores</a></li>
+            
           </ul>
         </nav>
       </center>
     </header>
     {% block content %}
     <section class="spacing">
-
-
     </section>
-    <center><h2 class = "homeabout">Classic Minesweeper... but way cooler</h2></center>
+
+    <div class="container">
+
+
+    <center><h2 class = "homeabout">"Not as Boring as the Original"</h2></center>
     <center>
-
-    <section class="screenshots">
-      <img src="/static/images/multiplayer.png"></img>
-      <img src="/static/images/mainWindow.png"></img>
-      <img src="/static/images/singleplayer.png"></img>
-    </section>
-
+      <section>
+        <img src="/static/images/multiplayer.png"></img>
+        <img src="/static/images/mainWindow.png"></img>
+        <img src="/static/images/singleplayer.png"></img>
+      </section>
     </center>
 
+    <center>
+      <section class="screenshots">
+        <div>
+          <h4>Classic Singleplayer</h4>
+          <p>
+            Play classic minesweeper on standard difficulties - Easy (10 x 10 and 10 mines), Medium
+            (16 x 16 and 40 mines), and hard (16 x 30 and 99 mines). In Minesweeper Improved, it is impossible
+            to click a mine on the first square, and at a minimum nine squares will be revealed on the
+            first click.
+          </p>
+        </div>
+        <div>
+          <h4>Play Against the Computer</h4>
+          <p>
+            Minesweeper improved contains the classic minesweeper we all know and love, but with a twist.
+            Multiplayer options allow for the player to compete side by side with the computer, with an
+            array of difficulties and skill levels. The computer is designed to be competitive, and is capable
+            of making mistakes when guessing.
+          </p>
+        </div>
+        <div>
+          <h4>Watch the Computer Dominate</h4>
+          <p>
+            The game contains a mode for watching the computer clear mines as fast as possible. In this
+            mode, the computer is less likely to make mistakes. When move is encountered where a guess
+            must be made, it will calcualte the probability of mines existing in each square. Then execute the
+            move with the lowest probability of a loss.
+          </p>
+        </div>
+      </section>
+    </center>
+  </div>
+
+    <section class="spacing">
+    </section>
 
     {% endblock %}
 

@@ -1,3 +1,5 @@
+sudo docker system prune --volumes
+
 // Set up volume and create docker
 sudo docker volume create --name=minesweeper
 sudo docker-compose up -d

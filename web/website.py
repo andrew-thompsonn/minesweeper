@@ -7,19 +7,41 @@ import cherrypy
 import random
 import string
 
-#from psql_database import PsqlDatabase
+from postgreSQL.psql_database import PsqlDatabase
 
 env = Environment(loader=FileSystemLoader('templates'))
 
 class Application(object):
-    ################################################################################################
+####################################################################################################
     @cherrypy.expose
     def index(self, *args, **kwargs):
         template = env.get_template('home.html')
 
         return template.render()
 
-    ################################################################################################
+####################################################################################################
+    @cherrypy.expose
+    def scores(self, *args, **kwargs):
+        template = env.get_template('scores.html')
+        database = PsqlDatabase()
+        database.connectToDatabase()
+        easyData, mediumData, hardData = database.getSinglePlayerScores()
+        compEasyData, compMediumData, compHardData = database.getAIScores()
+        multiPlayerData = database.getMultiplayerScores()
+
+
+        return template.render(sEasy = easyData, sMed = mediumData, sHard = hardData,
+                               cEasy = compEasyData, cMed = compMediumData, cHard = compHardData,
+                               multiData = multiPlayerData)
+
+####################################################################################################
+    @cherrypy.expose
+    def about(self, *args, **kwargs):
+        template = env.get_template('about.html')
+
+        return template.render()
+
+####################################################################################################
     # @cherrypy.expose
     # def about(self, *args, **kwargs):
     #     template = env.get_template('about.html')

@@ -1,0 +1,130 @@
+{% extends "home.html" %} {% block content%}
+
+<!-- Tab links -->
+
+<section class="spacing"></section>
+<div class="table_container">
+  <h3>Scores</h3>
+  <div class="tab">
+    <button class="tablinks" onclick="openTable(event, 'Singleplayer')">Singleplayer</button>
+    <button class="tablinks" onclick="openTable(event, 'Multiplayer')">Multiplayer</button>
+    <button class="tablinks" onclick="openTable(event, 'AI')">AI</button>
+  </div>
+
+
+  <!-- SINGLE PLAYER DATA -->
+  <div id="Singleplayer" class="tabcontent">
+    <h3>Easy (10, 10)</h3>
+    <table style = "width:100%">
+      <tr>
+        <th style = "text-align: left">Name</th>
+        <th style = "text-align: left">Time</th>
+      </tr>
+      {% for player in sEasy %}
+        <tr>
+          {% for data in player %}
+            <td>{{data}}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+    <h3>Medium (16, 16)</h3>
+    <table style = "width:100%">
+      <tr>
+        <th style = "text-align: left">Name</th>
+        <th style = "text-align: left">Time</th>
+      </tr>
+      {% for player in sMed %}
+        <tr>
+          {% for data in player %}
+            <td>{{data}}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+    <h3>Hard (16, 30)</h3>
+    <table style = "width:100%">
+      <tr>
+        <th style = "text-align: left">Name</th>
+        <th style = "text-align: left">Time</th>
+      </tr>
+      {% for player in sHard %}
+        <tr>
+          {% for data in player %}
+            <td>{{data}}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <!-- MULTI PLAYER DATA -->
+  <div id="Multiplayer" class="tabcontent">
+    <h3>Multiplayer</h3>
+    <table style = "width:100%">
+      <tr>
+        <th style = "text-align: left">Winner</th>
+        <th style = "text-align: left">Winner Difficulty</th>
+        <th style = "text-align: left">Loser</th>
+        <th style = "text-align: left">Loser Difficulty</th>
+        <th style = "text-align: left">Time</th>
+      </tr>
+      {% for entry in multiData %}
+        <tr>
+          {% for data in entry %}
+            <td>{{data}}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <!-- AI PLAYER DATA -->
+  <div id="AI" class="tabcontent">
+    <h3>Easy (10, 10)</h3>
+    <table style = "width:100%">
+      <tr>
+        <th style = "text-align: left">Name</th>
+        <th style = "text-align: left">Time</th>
+      </tr>
+      {% for player in cEasy %}
+        <tr>
+          {% for data in player %}
+            <td>{{data}}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+    <h3>Medium (16, 16)</h3>
+    <table style = "width:100%">
+      <tr>
+        <th style = "text-align: left">Name</th>
+        <th style = "text-align: left">Time</th>
+      </tr>
+      {% for player in cMed %}
+        <tr>
+          {% for data in player %}
+            <td>{{data}}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+    <h3>Hard (16, 30)</h3>
+    <table style = "width:100%">
+      <tr>
+        <th style = "text-align: left">Name</th>
+        <th style = "text-align: left">Time</th>
+      </tr>
+      {% for player in cHard %}
+        <tr>
+          {% for data in player %}
+            <td>{{data}}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+<section class = "spacing"></section>
+{% endblock %}

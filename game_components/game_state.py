@@ -64,7 +64,7 @@ class GameState():
         # For all visible bricks
         for coord in visibleBricksCoords:
             # Set the brick's visibility
-            self.bricks[coord].setVisibility(True)
+            self.clickBrick(coord)
         # For all flagged bricks
         for coord in flaggedBrickCoords:
             # Flag the brick
@@ -118,11 +118,11 @@ class GameState():
             # Generate random x and y coordinate
             coordinates = (randrange(sizeX), randrange(sizeY))
             # Get brick at those coordinates
-            currentbrick = self.bricks[coordinates]
+            currentBrick = self.bricks[coordinates]
             # If brick at coordinate is not a bomb
-            if not currentbrick.mine and (coordinates != coord and coordinates not in checklist):
+            if not currentBrick.mine and (coordinates != coord and coordinates not in checklist):
                 # Set brick to be a bomb
-                currentbrick.setMine()
+                currentBrick.setMine()
                 # Increment bomb count
                 mineCount += 1
                 # Save the coordinates of bomb (debugging only)

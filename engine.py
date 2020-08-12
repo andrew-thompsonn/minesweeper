@@ -17,7 +17,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, QThread, QTimer
 from PyQt5.QtWidgets import QApplication
 
 # Database
-from postgreSQL.psql_database import PsqlDatabase
+from web.postgreSQL.psql_database import PsqlDatabase
 
 ####################################################################################################
 
@@ -82,6 +82,7 @@ class Engine(QObject):
             self.playerBoard.changeMany(self.playerGameState)
             # Loaded game ID
             self.loadGameID = coordinates[3]
+            print("Loaded gameID: {}".format(self.loadGameID))
 
         # If configuration is single or multiplayer
         if config == 1 or config == 2:
@@ -229,16 +230,16 @@ class Engine(QObject):
         self.timer.timeout.connect(self.getAIMove)
         # If computer skill is bad
         if computerSkill == 0:
-            # Start timer with 1 move every second
+            # Start timer with 1 move every 1.0 seconds
             self.timer.start(1000)
         # If computer skill is medium
         elif computerSkill == 1:
-            # Start timer with 1 move every 0.75 seconds
+            # Start timer with 1 move every 0.6 seconds
             self.timer.start(600)
         # If computer skill is good
         else:
-            # Start timer with 1 move every 0.5 second
-            self.timer.start(300)
+            # Start timer with 1 move every 0.25 seconds
+            self.timer.start(250)
 
 ####################################################################################################
 
@@ -359,7 +360,7 @@ class Engine(QObject):
             # Format into string to display to user
             strTime = self.convertTime(self.gameTime)
             # Emit win signal
-            self.winGame.emit([strTime, "computer "+self.computerPlayer.name])
+            self.winGame.emit([strTime, self.computerPlayer.name])
             # Commit computer game into database
             self.insertGameIntoDatabase(self.computerGameState, self.computerPlayer)
         # If game is lost
@@ -375,7 +376,7 @@ class Engine(QObject):
             # Format into string to display to user
             strTime = self.convertTime(self.gameTime)
             # Emit lose signal
-            self.loseGame.emit([strTime, "computer "+self.computerPlayer.name])
+            self.loseGame.emit([strTime, self.computerPlayer.name])
             # Commit computer game into database
             self.insertGameIntoDatabase(self.computerGameState, self.computerPlayer)
 
@@ -553,8 +554,16 @@ class Engine(QObject):
         self.endTime = time.time()
         # Calculate total time
         self.gameTime = self.convertTime(self.endTime - self.startTime)
-        # Save the game to the database
-        self.gameDatabase.insertSave(gameState, self.gameTime, player)
+
+        # If already in a game that was saved
+        if self.loadGameID != 0:
+            # Overwrite previous save state
+            print("Overwriting previous save state...")
+            self.gameDatabase.insertSave(gameState, self.gameTime, player, self.loadGameID)
+        # Otherwise,
+        else:
+            # Save the game to the database as a new game
+            self.gameDatabase.insertSave(gameState, self.gameTime, player)
 
 ####################################################################################################
 
@@ -565,6 +574,7 @@ class Engine(QObject):
             Inputs:     time <int>
             Outputs     timeString <str>
         """
+        minutes = 0
         # If time is over an hour
         if time > 3600:
             # User needs to spend less time watching tv.
@@ -575,15 +585,20 @@ class Engine(QObject):
             minutes = int(round(time / 60))
             # Calculate seconds
             seconds = round(time % 60, 3)
-            # Create string representing time
-            timeString = str(minutes)+":"+str(seconds)
         # Otherwise time is less than a minute
         else:
             # Calculate seconds
             seconds = round(time % 60, 3)
-            # Create string representing time
-            timeString = str(seconds)
-
+        # Minute String
+        minuteString = str(minutes)
+        # Seconds String
+        secondString = str(seconds)
+        # If seconds is a single digit s
+        if seconds < 10:
+            # Add a leading zero
+            secondString = "0"+str(seconds)
+        # Concatenate a string to represent mm:ss.ms
+        timeString = minuteString +":"+secondString
         # Return the time string
         return timeString
 

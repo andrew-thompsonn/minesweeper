@@ -3,13 +3,15 @@ from PyQt5.QtWidgets import QComboBox, QPushButton, QFrame, QLineEdit, QCheckBox
 from PyQt5.QtGui import QIcon, QFont, QImage, QPalette, QBrush
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
-from postgreSQL.psql_database import PsqlDatabase
+from web.postgreSQL.psql_database import PsqlDatabase
 
 class SinglePlayerOptions(QDialog):
     configuration = pyqtSignal(object)
     nameSignal = pyqtSignal(object)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.setFixedSize(315, 200)
 
         gameDatabase = PsqlDatabase()
         gameDatabase.connectToDatabase()
@@ -19,11 +21,17 @@ class SinglePlayerOptions(QDialog):
         # LAYOUTS
         #-------------------------------------------------------------------------------------------
         mainLayout = QVBoxLayout(self)
-        mainLayout.setSpacing(50)
+        mainLayout.setAlignment(Qt.AlignTop)
+        mainLayout.setSpacing(20)
         titleLayout = QHBoxLayout()
+        titleLayout.setSpacing(0)
         nameLayout = QHBoxLayout()
+        nameLayout.setSpacing(0)
         optionsLayout = QHBoxLayout()
+        optionsLayout.setSpacing(0)
         buttonLayout = QHBoxLayout()
+        buttonLayout.setSpacing(0)
+
 
         #-------------------------------------------------------------------------------------------
         # WIDGETS
@@ -32,28 +40,35 @@ class SinglePlayerOptions(QDialog):
         titleLabel = QLabel("Singleplayer")
         titleLabel.setFont(QFont('Helvitica', 20))
 
+
         # Player information
         nameLabel = QLabel("Enter your name")
+        nameLabel.setFixedWidth(120)
         # Line for the player to enter their name
         self.nameLineEdit = QLineEdit()
+        self.nameLineEdit.setFixedWidth(180)
         # Start cursor left
         self.nameLineEdit.setAlignment(Qt.AlignLeft)
 
         # Combo box for difficulty selection
         self.difficultyBox = QComboBox()
+        self.difficultyBox.setFixedWidth(180)
         # Options for difficulty
         difficulties = ["Easy (10x10, 10 Mines)","Medium (16x16, 40 Mines)","Hard (16x30, 99 Mines)"]
         # Adding dificulty items
         self.difficultyBox.addItems(difficulties)
         # Label for combo box
         difficultyLabel = QLabel("Select a difficulty")
+        difficultyLabel.setFixedWidth(120)
 
 
 
         # Submission button
         submitButton = QPushButton("Play")
+        submitButton.setFixedWidth(180)
         # Submission Label
         submitLabel = QLabel("Ready?")
+        submitLabel.setFixedWidth(120)
 
         #-------------------------------------------------------------------------------------------
         # LAYOUT MANAGEMENT

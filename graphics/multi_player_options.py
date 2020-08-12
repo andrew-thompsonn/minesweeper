@@ -2,13 +2,15 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox
 from PyQt5.QtGui import QIcon, QFont, QImage, QPalette, QBrush
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
-from postgreSQL.psql_database import PsqlDatabase
+from web.postgreSQL.psql_database import PsqlDatabase
 
 class MultiPlayerOptions(QDialog):
     configuration = pyqtSignal(object)
     nameSignal = pyqtSignal(object)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.setFixedSize(420, 200)
 
         gameDatabase = PsqlDatabase()
         gameDatabase.connectToDatabase()
@@ -22,6 +24,7 @@ class MultiPlayerOptions(QDialog):
         nameLayout = QHBoxLayout()
         playerOptionsLayout = QHBoxLayout()
         computerOptionsLayout = QHBoxLayout()
+        computerSkillLayout = QHBoxLayout()
         buttonLayout = QHBoxLayout()
 
         #-------------------------------------------------------------------------------------------
@@ -33,30 +36,40 @@ class MultiPlayerOptions(QDialog):
 
         # Player information
         nameLabel = QLabel("Enter your name")
+        nameLabel.setFixedWidth(200)
         # Line for the player to enter their name
         self.nameLineEdit = QLineEdit()
         # Start cursor left
         self.nameLineEdit.setAlignment(Qt.AlignLeft)
+        self.nameLineEdit.setFixedWidth(200)
 
         # Options
         difficulties = ["Easy (10x10, 10 Mines)","Medium (16x16, 40 Mines)","Hard (16x30, 99 Mines)"]
         self.playerDifficultyBox = QComboBox()
+        self.playerDifficultyBox.setFixedWidth(200)
         self.playerDifficultyBox.addItems(difficulties)
         playerDifficultyLabel = QLabel("Select your difficulty")
+        playerDifficultyLabel.setFixedWidth(200)
 
         self.computerDifficultyBox = QComboBox()
+        self.computerDifficultyBox.setFixedWidth(200)
         self.computerDifficultyBox.addItems(difficulties)
         computerDifficultyLabel = QLabel("Select the computer's difficulty")
+        computerDifficultyLabel.setFixedWidth(200)
 
         self.computerSkillBox = QComboBox()
+        self.computerSkillBox.setFixedWidth(200)
         self.computerSkillBox.addItems(["Easy", "Medium", "Hard"])
         computerSkillLabel = QLabel("Select the computer's skill level")
+        computerSkillLabel.setFixedWidth(200)
 
         # Submission
         submitButton = QPushButton("Play")
+        submitButton.setFixedWidth(200)
         submitLabel = QLabel("Ready?")
+        submitLabel.setFixedWidth(200)
 
-        backButton = QPushButton("Back")
+
 
 
         #-------------------------------------------------------------------------------------------
@@ -74,10 +87,10 @@ class MultiPlayerOptions(QDialog):
 
         computerOptionsLayout.addWidget(computerDifficultyLabel)
         computerOptionsLayout.addWidget(self.computerDifficultyBox)
-        computerOptionsLayout.addWidget(computerSkillLabel)
-        computerOptionsLayout.addWidget(self.computerSkillBox)
+        computerSkillLayout.addWidget(computerSkillLabel)
+        computerSkillLayout.addWidget(self.computerSkillBox)
 
-        buttonLayout.addWidget(backButton)
+
         buttonLayout.addWidget(submitLabel)
         buttonLayout.addWidget(submitButton)
 
@@ -85,6 +98,7 @@ class MultiPlayerOptions(QDialog):
         mainLayout.addLayout(nameLayout)
         mainLayout.addLayout(playerOptionsLayout)
         mainLayout.addLayout(computerOptionsLayout)
+        mainLayout.addLayout(computerSkillLayout)
         mainLayout.addLayout(buttonLayout)
 
         #-------------------------------------------------------------------------------------------
@@ -92,7 +106,7 @@ class MultiPlayerOptions(QDialog):
         #-------------------------------------------------------------------------------------------
         submitButton.clicked.connect(self.sendConfiguration)
         self.nameLineEdit.textChanged.connect(self.checkName)
-        backButton.clicked.connect(self.closeDialog)
+
 
         self._exitCode = 1
 
