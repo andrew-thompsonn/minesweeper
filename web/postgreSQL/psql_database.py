@@ -21,6 +21,11 @@ class PsqlDatabase:
 ####################################################################################################
 
     def connectToDatabase(self):
+        """ Method to make the initial connection to the database
+
+            Inputs:     None
+            Outputs:    None
+        """
         try:
             self.path = os.path.dirname(os.path.abspath(__file__))
 
@@ -37,12 +42,21 @@ class PsqlDatabase:
 ####################################################################################################
 
     def commit(self):
+        """ Method to commit insertions or deletions to the database
+
+            Inputs:     None
+            Outputs:    None
+        """
         self.cxn.commit()
 
 ####################################################################################################
 
     def selectNames(self):
-        """ Get all names of players who have played the game """
+        """ Get all names of players who have played the game.
+
+            Inputs:     None
+            Outputs:    names [string]
+        """
         # Select all names of players
         self.cursor.execute("SELECT name FROM player_info;")
         # Fetch all names
@@ -59,7 +73,12 @@ class PsqlDatabase:
 ####################################################################################################
 
     def insertNewPlayer(self, name, isHuman):
-        """ Insert a new player into the database """
+        """ Insert a new player into the database/ check if player is already in database
+
+            Inputs:     name <string>
+                        isHuman <bool>
+            Outputs:    None
+        """
         # Get list of all players
         names = self.selectNames()
         # If player is already in databases
@@ -77,7 +96,11 @@ class PsqlDatabase:
 ####################################################################################################
 
     def getPlayerID(self, name):
-        """ Get the player id of an existing player """
+        """ Get the player id of an existing player
+
+            Inputs:     name <string>
+            Outputs:    playerID <int>
+        """
         # Select playerID from database
         self.cursor.execute("SELECT playerid FROM player_info WHERE name = '{}'".format(name))
         # Fetch unique player
@@ -88,7 +111,15 @@ class PsqlDatabase:
 ####################################################################################################
 
     def insertGame(self, gameState, player, time, gameID, multiplayerFlag = None):
-        """ Insert game data into the database, for games that have finished """
+        """ Insert game data into the database for games that have been saved or completed.
+
+            Inputs:     gameState <GameState>
+                        player <player>
+                        time <float>
+                        gameID <int>
+                        multiplayerFlag <bool>
+            Outputs:    None
+        """
         # Get player ID
         playerID = self.getPlayerID(player.name)
         # Get game difficulty string
@@ -126,7 +157,14 @@ class PsqlDatabase:
 ####################################################################################################
 
     def insertSave(self, gameState, time, player, loadGameID = None):
-        """ Insert game data into the database for a game in progress """
+        """ Insert game data as a new save_state in the database.
+
+            Inputs:     gameState <GameState>
+                        time <float>
+                        player <Player>
+                        loadGameID <int>
+            Outputs:    None
+        """
         # If game was not loaded
         if loadGameID == None:
             # Create new game ID
@@ -175,7 +213,11 @@ class PsqlDatabase:
 ####################################################################################################
 
     def selectSaves(self, name):
-        """ Retrieve information about all of a player's saved games """
+        """ Retrieve information about all of a player's saved games.
+
+            Inputs:     name <string>
+            Outputs:    saveInfo [(<string>, <string>, <int>)]
+        """
         # Get player id from player name
         self.cursor.execute("select playerid from player_info where name = '{}';".format(name))
         playerID = int(self.cursor.fetchone()[0])
@@ -207,6 +249,15 @@ class PsqlDatabase:
 ####################################################################################################
 
     def loadGame(self, saveID):
+        """ Get the information required to load a previously saved game
+
+            Inputs:     saveID <int>
+            Outputs:    difficulty <string>
+                        visibleBrickCoords [(<int>, <int>)]
+                        mineCoords [(<int>, <int>)]
+                        flagCoords [(<int>, <int>)]
+                        gameID <int>
+        """
         # Select information needed to init a game in progress
         self.cursor.execute("select size, visible_Bricks, mine_locations, flag_locations, gameID from save_state where saveID = {};".format(saveID))
         # fetch single
@@ -243,9 +294,15 @@ class PsqlDatabase:
 
 ####################################################################################################
 
-
     def finishSavedGame(self, gameState, player, gameID, time):
+        """ Takes care of housekeeping when a previously saved game is finished.
 
+            Inputs:     gameState <GameState>
+                        player <Player>
+                        gameID <int>
+                        time <float>
+            Outputs:    None
+        """
         # Deleter the save info
         self.cursor.execute("Delete from save_state where gameID = {};".format(gameID))
         self.commit()
@@ -261,10 +318,14 @@ class PsqlDatabase:
         # Update with new game info
         self.insertGame(gameState, player, newTime, gameID)
 
-
 ####################################################################################################
 
     def createArrayString(self, coordinateList):
+        """ Create a string representing an Array in postgresql syntax.
+
+            Inputs:     coordinateList [(<int>, <int>)]
+            Outputs:    arrayString <string>
+        """
         # Initialize string to represnt postgres array
         arrayString = "ARRAY["
         # For all coordinates
@@ -284,10 +345,16 @@ class PsqlDatabase:
         # Return array string
         return arrayString
 
-
 ####################################################################################################
 
     def getSinglePlayerScores(self):
+        """ Gets the top 5 singelplayer times for each difficulty.
+
+            Inputs:     None
+            Outputs:    easyData <list>
+                        hardData <list>
+                        mediumData <list>
+        """
         # Difficulties in database
         difficulties = ['(10, 10)', '(16, 16)', '(16, 30)']
         # Get easy names and times
@@ -302,6 +369,13 @@ class PsqlDatabase:
 ####################################################################################################
 
     def getAIScores(self):
+        """ Gets the top 5 AI times for each difficulty.
+
+            Inputs:     None
+            Outputs:    easyData <list>
+                        mediumData <list>
+                        hardData <list>
+        """
         # Difficulties in database
         difficulties = ['(10, 10)', '(16, 16)', '(16, 30)']
         # Easy names and times
@@ -316,6 +390,13 @@ class PsqlDatabase:
 ####################################################################################################
 
     def getScores(self, isHuman, difficulty):
+        """ Queries the database for the top 5 times for a human or computer player on a selected
+            difficulty.
+
+            Inputs:     isHuman <bool>
+                        difficulty <string>
+            Outputs:    data <list>
+        """
         # Query to get names and times in ascending order for specific type of player
         self.cursor.execute("select name, game_time from player_info inner join game_info on game_info.playerID = player_info.playerID where type = {} and difficulty = '{}' and win = True and played_against is NULL order by game_time asc limit 5;".format(isHuman, difficulty))
         # Get all 5 names and times
@@ -324,54 +405,72 @@ class PsqlDatabase:
         data = []
         # For all gamess
         for game in games:
-            # Add name and time to data
+            # Get name
             name = game[0]
+            # Get time
             time = float(game[1])
+            # Convert time to a string in mm:ss.ms
             timeString = self.getTimeString(time)
+            # Add name and time to data
             data.append([name, timeString])
-            print(type(float(game[1])), float(game[1]))
         # Return names and times
         return data
 
 ####################################################################################################
 
     def getMultiplayerScores(self):
-        """ Select Multiplayer times """
-        # A select name, game_time, difficulty, gameid from game_info inner join player_info on game_info.playerid = player_info.playerid where win = True and played_against is not null;
+        """ Select most recent multiplayer games winner and loser information
+
+            Inputs:     None
+            Outputs:    multiPlayerData <list>
+        """
+        # Query to get multiplayer winners
         self.cursor.execute("select name, game_time, difficulty, gameid from game_info inner join player_info on game_info.playerid = player_info.playerid where win = True and played_against is not null;")
+        # Get results from query
         winners = self.cursor.fetchall()
-
+        # Initialize a list of losers
         losers = []
+        # For every multiplayer winner
         for winner in winners:
+            # Get the game ID
             gameID = winner[3]
+            # Query for the loser's information
             self.cursor.execute("select name, difficulty from game_info inner join player_info on game_info.playerid = player_info.playerid where win = False and played_against = {};".format(gameID))
+            # Execute Query
             loser = self.cursor.fetchone()
+            # Add loser information to losers list
             losers.append(loser)
-
-        print(winners)
-        print(losers)
-
-        # Winner    Winner diff     Loser   LoserDiff   time
+        # Initialize a list of data representing multiplayer games
         multiPlayerData = []
+        # For all winners and losers
         for index in range(len(winners)):
+            # Get a winner
             winner = winners[index]
+            # Get corresponding loser
             loser = losers[index]
+            # Add a list of information about winner and loser to data list
             multiPlayerData.append([winner[0], winner[2], loser[0], loser[1], self.getTimeString(float(winner[1]))])
-
+        # Return multiplayer data
         return multiPlayerData
-
 
 ####################################################################################################
 
     def incrementGameID(self):
+        """ Increment the current highest game ID
+
+            Inputs:     None
+            Outputs:    nextGameID <int>
+        """
         # Select highest game id
         self.cursor.execute("SELECT gameID from game_info order by gameID desc limit 1;")
         # Get highest game id
         try:
+            # Try to get the highest value
             currentGameID = int(self.cursor.fetchone()[0])
+        # If no value (no games have been played yet)
         except TypeError as error:
+            # Use 0 As the current highest value
             currentGameID = 0
-
         # Increment by 1
         nextGameID = currentGameID + 1
         # Return next game id
@@ -380,13 +479,24 @@ class PsqlDatabase:
 ####################################################################################################
 
     def incrementSaveID(self):
+        """ Increment the current highest save ID
+
+            Inputs:     None
+            Outputs:    nextSaveID <int>
+        """
         # Select Highest saveID
         self.cursor.execute("SELECT saveID from save_state order by saveID desc limit 1;")
+        # Get highest save id
         try:
+            # Try to get the highest value
             currentSaveID = int(self.cursor.fetchone()[0])
+        # If no value (No games have been saved yet)
         except TypeError as error:
+            # Use 0 as the current highest value
             currentSaveID = 0
+        # Increment by 1
         nextSaveID = currentSaveID + 1
+        # Return next save id
         return nextSaveID
 
 ####################################################################################################
@@ -408,28 +518,34 @@ class PsqlDatabase:
             minutes = int(round(time / 60))
             # Calculate seconds
             seconds = round(time % 60, 3)
-
         # Otherwise time is less than a minute
         else:
             minutes = 0
             # Calculate seconds
             seconds = round(time % 60, 3)
-
-
+        # Get a string to represent seconds
         secondString = str(seconds)
+        # If seconds is a single digit
         if seconds < 10:
+            # Add a zero at the beginning
             secondString = "0"+str(seconds)
+        # If seconds is a decimal only
         if seconds < 1:
+            # Add two zeros at the beginning
             secondString == "00"+str(seconds)
+        # Get a string to represent minutes
         minuteString = str(minutes)
+        # If time is less than 10 minutes
         if minutes < 10:
+            # Add a 0 at the beginning
             minuteString = "0"+str(minutes)
+        # If time is less than 1 minute
         if minutes < 1:
+            # Make the minute string 2 zeros
             minuteString = "00"
-        # Create string representing time
+        # Concatenate minutes : seconds
         timeString = minuteString+":"+secondString
-
-        # Return the time string
+        # Return the time represented as a string mm:ss.ms
         return timeString
 
 ####################################################################################################

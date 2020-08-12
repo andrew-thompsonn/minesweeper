@@ -3,25 +3,33 @@ from PyQt5.QtWidgets import QComboBox, QPushButton, QFrame, QLineEdit, QCheckBox
 from PyQt5.QtGui import QIcon, QFont, QImage, QPalette, QBrush
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
+####################################################################################################
 
 class WatchOptions(QDialog):
+    """ Class to represent the dialog box for watch options """
+    # Signal for game configuration
     configuration = pyqtSignal(object)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+####################################################################################################
 
+    def __init__(self, *args, **kwargs):
+        # Initialize parent class
+        super().__init__(*args, **kwargs)
+        # Set geometry of window
         self.setFixedSize(315, 200)
+
         #-------------------------------------------------------------------------------------------
         # LAYOUTS
         #-------------------------------------------------------------------------------------------
         mainLayout = QVBoxLayout(self)
-        mainLayout.setSpacing(20)
         titleLayout = QHBoxLayout()
         nameLayout = QHBoxLayout()
-        nameLayout.setSpacing(0)
         optionsLayout = QHBoxLayout()
-        optionsLayout.setSpacing(0)
         buttonLayout = QHBoxLayout()
+
+        mainLayout.setSpacing(20)
+        nameLayout.setSpacing(0)
+        optionsLayout.setSpacing(0)
         buttonLayout.setSpacing(0)
 
         #-------------------------------------------------------------------------------------------
@@ -42,7 +50,6 @@ class WatchOptions(QDialog):
         difficultyLabel = QLabel("Select a difficulty")
         difficultyLabel.setFixedWidth(120)
 
-
         # Submission button
         submitButton = QPushButton("Watch")
         submitButton.setFixedWidth(180)
@@ -53,9 +60,8 @@ class WatchOptions(QDialog):
         #-------------------------------------------------------------------------------------------
         # LAYOUT MANAGEMENT
         #-------------------------------------------------------------------------------------------
-        # Adding title to titley layout
+        # Adding title to title layout
         titleLayout.addWidget(titleLabel)
-
 
         # Add the label for difficulties
         optionsLayout.addWidget(difficultyLabel)
@@ -74,13 +80,21 @@ class WatchOptions(QDialog):
         #-------------------------------------------------------------------------------------------
         # SIGNAL MANAGEMENT
         #-------------------------------------------------------------------------------------------
-
+        # Connect submit button to send configuration
         submitButton.clicked.connect(self.submitPressed)
 
+####################################################################################################
 
     def submitPressed(self):
+        # Watch configuration code is 3
         config = 3
+        # Get computer difficulty from combo box
         computerDifficulty = self.difficultyBox.currentIndex()
+        # Create configuration
         configuration = (config, computerDifficulty)
+        # Emit configuration
         self.configuration.emit(configuration)
+        # Close window
         self.close()
+
+####################################################################################################

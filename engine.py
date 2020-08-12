@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 3,406
+# 3,990
 
 import time
 from random import randrange
@@ -553,17 +553,19 @@ class Engine(QObject):
         # Get end time
         self.endTime = time.time()
         # Calculate total time
-        self.gameTime = self.convertTime(self.endTime - self.startTime)
+        self.gameTime = self.endTime - self.startTime
+        # Get rounded version of gametime
+        gameTime = round(self.gameTime, 3)
 
         # If already in a game that was saved
         if self.loadGameID != 0:
             # Overwrite previous save state
             print("Overwriting previous save state...")
-            self.gameDatabase.insertSave(gameState, self.gameTime, player, self.loadGameID)
+            self.gameDatabase.insertSave(gameState, gameTime, player, self.loadGameID)
         # Otherwise,
         else:
             # Save the game to the database as a new game
-            self.gameDatabase.insertSave(gameState, self.gameTime, player)
+            self.gameDatabase.insertSave(gameState, gameTime, player)
 
 ####################################################################################################
 
@@ -578,7 +580,7 @@ class Engine(QObject):
         # If time is over an hour
         if time > 3600:
             # User needs to spend less time watching tv.
-            timeString = "Your an idiot. You took over an hour. Find something better to do"
+            timeString = "1+ Hours"
         # If time greater than a minute
         elif time >= 60:
             # Calculate minutes

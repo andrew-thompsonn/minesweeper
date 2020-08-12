@@ -162,7 +162,6 @@ class GameState():
         checkAll = [(xIndex, yIndex-1) ,(xIndex,yIndex+1), (xIndex-1,yIndex), (xIndex+1,yIndex),
                     (xIndex-1,yIndex-1),(xIndex-1,yIndex+1),(xIndex+1,yIndex-1),(xIndex+1,yIndex+1)]
 
-
         # Upper coordinates
         checkTop = [(xIndex-1,yIndex-1),(xIndex-1,yIndex),(xIndex-1,yIndex+1)]
         # Lower coordinates
@@ -431,7 +430,7 @@ class GameState():
     def printBoard(self):
         """ Function to print ASCII version of game """
         #system('clear')
-
+        print("\n"*10)
         # Print y axis
         for yIndex in range(self.sizeY):
             print(" {}  ".format(yIndex), end = "")

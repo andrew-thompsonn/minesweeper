@@ -4,9 +4,16 @@ from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
 class StartScreen(QWidget):
     """ The main menu screen """
+
+    # Signal for singleplayer options
     singlePlayerPressed = pyqtSignal()
+    # Signl for multiplayer options
     multiPlayerPressed = pyqtSignal()
+    # Signal for watch options
     watchButtonPressed = pyqtSignal()
+
+####################################################################################################
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -98,11 +105,19 @@ class StartScreen(QWidget):
         self.multiPlayerButton.clicked.connect(self.multiPlayerChosen)
         self.watchButton.clicked.connect(self.watchChosen)
 
+####################################################################################################
+
     def singlePlayerChosen(self):
         self.singlePlayerPressed.emit()
+
+####################################################################################################
 
     def multiPlayerChosen(self):
         self.multiPlayerPressed.emit()
 
+####################################################################################################
+
     def watchChosen(self):
         self.watchButtonPressed.emit()
+
+####################################################################################################

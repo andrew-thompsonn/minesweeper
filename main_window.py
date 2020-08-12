@@ -16,7 +16,14 @@ from graphics.load_game_options import LoadGameOptions
 
 class MainWindow(QMainWindow):
     """ Class for the main window of the application. """
+####################################################################################################
     def __init__(self, *args, **kwargs):
+        """ Initialize a main window for the minesweeper application. Contains buttons connected
+            to load game options, singleplayer options, multiplayer options, and watch options.
+
+            Inputs:     None
+            Outputs:    None
+        """
         super().__init__(*args, *kwargs)
 
         #-------------------------------------------------------------------------------------------
@@ -44,6 +51,7 @@ class MainWindow(QMainWindow):
         editMenu = menuBar.addMenu("Edit")
         # Edit/preferences - will be able to change color theme
         prefAction = editMenu.addMenu("Preferences")
+        # This will do something eventually
 
         #-------------------------------------------------------------------------------------------
         # INIT
@@ -80,6 +88,9 @@ class MainWindow(QMainWindow):
     def watchOptions(self):
         """ Displays the options for watching the AI playe minesweeper and stores the user's desired
             configuration
+
+            Inputs:     None
+            Outputs:    None
         """
         # Watch options dialog
         watchDialog = WatchOptions()
@@ -93,6 +104,9 @@ class MainWindow(QMainWindow):
     def singlePlayerOptions(self):
         """ Displays the options for singleplayer minesweeper gameplay and stores the users desired
             configuration
+
+            Inputs:     None
+            Outputs:    None
         """
         # Single player option dialog
         singleDialog = SinglePlayerOptions()
@@ -108,6 +122,9 @@ class MainWindow(QMainWindow):
     def multiPlayerOptions(self):
         """ Displays the options for multiplayer minesweeper gameplay and stores the users desired
             configuration
+
+            Inputs:     None
+            Outputs:    None
         """
         # Multi player option dialog
         multiDialog = MultiPlayerOptions()
@@ -121,6 +138,11 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def loadGameOptions(self):
+        """ Displays the options for loading a previously save game.
+
+            Inputs:     None
+            Outputs:    None
+        """
         # Load game options dialog
         loadDialog = LoadGameOptions()
         # Get player name
@@ -133,7 +155,12 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def setConfiguration(self, configuration):
-        """ Sets the MainWindow configuration variable """
+        """ Sets the MainWindow configuration variable and executes a dialog based off the selected
+            configuration
+
+            Inputs:     configuration <list>
+            Outputs:    None
+        """
         # Get the window that sent the signal
         sender = self.sender()
         # Close the window that sent the signal
@@ -146,20 +173,32 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def setName(self, name):
-        """ Sets the name of the player """
+        """ Sets the mainWindow player name variable
+
+            Inputs:     name <string>
+            Outputs:    None
+        """
         # Set player name
         self.playerName = name
 
 ####################################################################################################
 
     def quit(self, returnCode):
-        """ A shortcut function used to quit the application """
+        """ A shortcut function used to quit the application
+
+            Inputs:     None
+            Outputs:    None
+        """
         exit(returnCode)
 
 ####################################################################################################
 
     def paintEvent(self, event):
-        """ Function to allow for continuous background animation """
+        """ Function to allow for continuous background animation
+
+            Inputs:     event <event>
+            Outputs:    None
+        """
         # Get current fram
         currentFrame = self.movie.currentPixmap()
         # Current frame rectangle
@@ -173,18 +212,4 @@ class MainWindow(QMainWindow):
             # Redraw background
             painter.drawPixmap(frameRect.left(), frameRect.top(), currentFrame)
 
-
-
-
-# Code for still image background ------------------------------------------------------------------
-
-# # Create QImage
-# oImage = QImage("images/watermine.jpg")
-# # Scale QImage
-# sImage = oImage.scaled(QSize(600,400))
-# # Create a Palette
-# palette = QPalette()
-# # Set palette as background
-# palette.setBrush(QPalette.Window, QBrush(sImage))
-# # Set main window palette
-# self.setPalette(palette)
+####################################################################################################

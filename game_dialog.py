@@ -13,8 +13,17 @@ import os
 import sys
 
 class GameDialog(QDialog):
+    """ A class for the dialog box a user plays the game in. """
 ####################################################################################################
     def __init__(self, configuration, playerName, *args, **kwargs):
+        """ Initialize a new game dialog. Depending on configuration, determine correct board layout
+            and configuration the engine needs to be initialized in.
+
+            Inputs:     configuration <list>
+                        playerName <string>
+            Outputs:    None
+        """
+        # Initialize parent class
         super().__init__(*args, **kwargs)
 
         #-------------------------------------------------------------------------------------------
@@ -227,6 +236,11 @@ class GameDialog(QDialog):
 ####################################################################################################
 
     def timerDisplay(self):
+        """ Manage the game timer.
+
+            Inputs:     None
+            Outputs:    None
+        """
         # If either game has ended
         if self.engine.computerGameState.status != 0 or self.engine.playerGameState.status != 0:
             # Stop the timer
@@ -234,16 +248,21 @@ class GameDialog(QDialog):
         else:
             # Increment time
             self.seconds += 1
-
+            # If seconds is 60
             if self.seconds == 60:
+                # Increment minutes
                 self.minutes += 1
+                # Set seconds to 0
                 self.seconds = 0
-
+            # If seconds is single digit
             if self.seconds < 10:
+                # Add 0 at beginning
                 secondsStr = "0"+str(self.seconds)
+            # Otherwise
             else:
+                # Seconds string is unchanged
                 secondsStr = str(self.seconds)
-
+            # Concatenate time string
             self.timeString = str(self.minutes)+":"+secondsStr
             # Change timer text
             self.gameTime.setText("Time:    "+self.timeString)
@@ -251,6 +270,11 @@ class GameDialog(QDialog):
 ####################################################################################################
 
     def winDialog(self, info):
+        """ Display a win dialog with player and game information
+
+            Inputs:     Info <list>
+            Outputs:    None
+        """
         time = info[0]
         name = info[1]
         # If configuration is singleplayer
@@ -279,6 +303,11 @@ class GameDialog(QDialog):
 ####################################################################################################
 
     def loseDialog(self, info):
+        """ Display a lose dialog with player and game information
+
+            Inputs:     Info <list>
+            Outputs:    None
+        """
         time = info[0]
         name = info[1]
         # If configuration is singleplayer
@@ -304,10 +333,14 @@ class GameDialog(QDialog):
         # Close the game dialog
         self.close()
 
-
 ####################################################################################################
 
     def saveGame(self):
+        """ A method to connect the save button to the a save method in the engine
+
+            Inputs:     None
+            Outputs:    None
+        """
         # Connecting the save button to the engines method for saving games
         self.engine.saveGame()
         self.close()
@@ -315,18 +348,33 @@ class GameDialog(QDialog):
 ####################################################################################################
 
     def handlePlayerFlagNumber(self, flags):
+        """ Update player flag numbers
+
+            Inputs:     flags <int>
+            Outputs:    None
+        """
         # Change the flag count for the player
         self.playerFlagCount.setText(str(flags))
 
 ####################################################################################################
 
     def handleComputerFlagNumber(self, flags):
+        """ Update computer flag numbers
+
+            Inputs:     flags <int>
+            Outputs:    None
+        """
         # Change the flag count for the computer
         self.compFlagCount.setText(str(flags))
 
 ####################################################################################################
 
     def startTime(self):
+        """ A method to start the timer.
+
+            Inputs:     None
+            Outputs:    None
+        """
         # Start timer
         self.timer.start(1000)
 

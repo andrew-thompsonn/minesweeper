@@ -21,7 +21,7 @@ def main():
             commitAction("leftclick", brick, gameState)
         if not mines and not clear:
             randomMove = computer.first()
-            commitAction("leftclick", firstMove, gameState)
+            commitAction("leftclick", randomMove, gameState)
 
     gameState.printBoard()
     if gameState.status == 1:
@@ -29,7 +29,7 @@ def main():
     else: print("Loss")
 
 def commitAction(type, coordinate, gameState):
-    time.sleep(0.1)
+    time.sleep(0.05)
     # Get brick at coordinates
     brick = gameState.bricks[coordinate]
     # If action is a left click

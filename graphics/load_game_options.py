@@ -98,9 +98,6 @@ class LoadGameOptions(QDialog):
     def fillList(self, name):
         self.saveGameList.clear()
         self.savedGames = self.gameDatabase.selectSaves(name)
-
-        # If only one save game
-
         self.saveIDs = []
         for game in self.savedGames:
             if game:

@@ -6,7 +6,7 @@ import cherrypy
 import random
 import string
 
-# from web.website import Application
+#from web.website import Application
 
 import sys
 from PyQt5.QtWidgets import QApplication
@@ -28,29 +28,31 @@ from main_window import MainWindow
 #
 # ####################################################################################################
 #
-# def startWeb():
-#     # Configuration for cherrypy server
-#     conf = {
-#         'global': {
-#             'server.socket_host': '0.0.0.0',
-#             'server.socket_port': 8080
-#         },
-#         '/': {
-#             'tools.sessions.on': True,
-#             'tools.staticdir.root': os.path.abspath(os.getcwd())
-#         },
-#         '/static': {
-#             'tools.staticdir.on': True,
-#             'tools.staticdir.dir': './public'
-#         }
-#     }
-#
-#     webapp = Application()
-#     cherrypy.quickstart(webapp, '/', conf)
+def startWeb():
+    # Configuration for cherrypy server
+    conf = {
+        'global': {
+            'server.socket_host': '0.0.0.0',
+            'server.socket_port': 8080
+        },
+        '/': {
+            'tools.sessions.on': True,
+            'tools.staticdir.root': os.path.abspath(os.getcwd())
+        },
+        '/static': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': './public'
+        }
+    }
+
+    webapp = Application()
+    cherrypy.quickstart(webapp, '/', conf)
 
 ####################################################################################################
 
 def main():
+    #startWeb()
+
     app = QApplication(sys.argv)
 
     mainWindow = MainWindow()

@@ -6,9 +6,17 @@ from random import randrange
 import time
 
 class ComputerPlayer(Player):
+    """ A class to represent the computer player and the actions the computer wants to commit based
+        on the current gamestate """
 
 ####################################################################################################
     def __init__(self, skill, gameState, *args, **kwargs):
+        """ Get correct computer name based on the skill of the computer, set skill, initialize
+            variables, and document the current gamestate
+
+            Inputs:     skill <int>
+                        gameState <GameState>
+        """
         name = self.getName(skill)
         super().__init__(name, False)
         # Skill level of AI
@@ -29,22 +37,41 @@ class ComputerPlayer(Player):
 ####################################################################################################
 
     def getName(self, skill):
+        """ Get the name of the computer
+
+            Inputs:     skill <int>
+            Outputs:    name <string>
+        """
+        # Dictionary of computer skills corresponding to names
         names = {0:'Computer_1', 1:'Computer_2', 2:'Computer_3', 3:'Computer', 69:None}
+        # Get name
         name = names[skill]
+        # Return name
         return name
 
 ####################################################################################################
 
     def seeBoard(self, gameState):
-        # Ensure the computer is only getting information the player can see
+        """ Get information about the gameState that the computer requires to make decisions.
+
+            Inputs:     gameState <GameState>
+            Outputs:    visibleBricks [(<int>, <int>)]
+        """
+        # Get visible bricks
         visibleBricks = gameState.visibleBricks
         self.visibleBricks = gameState.visibleBricks
-
+        # Return all bricks, and visible bricks
         return visibleBricks, gameState.bricks
 
 ####################################################################################################
 
     def first(self):
+        """ Get a random coordinate to click. Always called on the computer's first move. Only
+            chooses coordinates that are not visible.
+
+            Inputs:     None
+            Outputs:    Coordinates (<int>, <int>)
+        """
         # Get information from gamestate
         visibleBricks, allBricks = self.seeBoard(self.gameState)
         # Initialize list of invisible bricks
@@ -65,6 +92,11 @@ class ComputerPlayer(Player):
 ####################################################################################################
 
     def getMines(self, gameState):
+        """ Get a list of bricks that have to be mines.
+
+            Inputs:     gameState
+            Outputs:    mines [(<int>, <int>)]
+        """
         # Get list of visible bricks
         visibleBricks, allBricks = self.seeBoard(gameState)
         # Initialize a list of confirmed mines
@@ -105,9 +137,12 @@ class ComputerPlayer(Player):
 
 ####################################################################################################
 
-    # Add-in number of flags a brick is already touching into probability calculation
-
     def getSafeBricks(self, gameState):
+        """ Get list of bricks that cannot be mines.
+
+            Inputs:     gameState <GameState>
+            Outputs:    clearBricks [(<int>, <int>)]
+        """
         # Get list of visible bricks
         visibleBricks, allBricks = self.seeBoard(gameState)
         # A list of confirmed safe bricks
@@ -146,6 +181,13 @@ class ComputerPlayer(Player):
 ####################################################################################################
 
     def probability(self, gameState):
+        """ Calculate the probability of all unclicked bricks as being mines. Only calculates for
+            bricks that are touching visible numbers
+
+            Inputs:     gameState <GameState>
+            Outputs:    coordinates (<int>, <int>)
+                        probability <int>
+        """
         # Dictionary containing coordinates and probability of mine
         mineProbabilities = {}
         # Get list of visible bricks
@@ -190,25 +232,44 @@ class ComputerPlayer(Player):
                     # Add to dictionary
                     mineProbabilities[candidate] = mineProbability
 
+        # Get the minimum probability
         minValue = min(mineProbabilities.values())
+        # Get list of bricks with minimum probability (could be multiple)
         minKeys = [k for k, v in mineProbabilities.items() if v == minValue]
+        # Return the coordinates and probability
         return minKeys[0], minValue
 
 
 ####################################################################################################
 
     def countFlags(self, coordinates):
-        checklist = self.getNearCoordinates(coordinates[0], coordinates[1])
-        flagCount = 0
-        for coord in checklist:
-            if self.gameState.bricks[coord].flag:
-                flagCount += 1
+        """ Count the number of flags a brick is touching.
 
+            Inputs:     coordinates (<int>, <int>)
+            Outputs:    flagCount <int>
+        """
+        # Get surrounding cordinates
+        checklist = self.getNearCoordinates(coordinates[0], coordinates[1])
+        # Initialize a flag count
+        flagCount = 0
+        # For every surrounding coordinate
+        for coord in checklist:
+            # If the brick at the coordinate is flagged
+            if self.gameState.bricks[coord].flag:
+                # Increment the flag count
+                flagCount += 1
+        # Return the flag count
         return flagCount
 
 ####################################################################################################
 
     def getNearCoordinates(self, xIndex, yIndex):
+        """ Get all surrounding coordinates of an x and y coordinate.
+
+            Inputs:     xIndex <int>
+                        yIndex <int>
+            Outputs:    checklist [(<int>, <int>)]
+        """
         maxXIndex = self.sizeX - 1
         maxYIndex = self.sizeY - 1
 
