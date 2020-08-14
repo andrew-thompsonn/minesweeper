@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QWidget
+from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QWidget, QMessageBox
 from PyQt5.QtGui import  QImage, QPalette, QBrush, QIcon,  QMovie, QPainter, QPixmap
 from PyQt5.QtCore import QSize
 
@@ -14,8 +14,13 @@ from graphics.start_screen import StartScreen
 from graphics.watch_options import WatchOptions
 from graphics.load_game_options import LoadGameOptions
 
+from web.postgreSQL.psql_database import PsqlDatabase, PsqlDatabaseError
+
+####################################################################################################
+
 class MainWindow(QMainWindow):
     """ Class for the main window of the application. """
+
 ####################################################################################################
     def __init__(self, *args, **kwargs):
         """ Initialize a main window for the minesweeper application. Contains buttons connected
@@ -24,7 +29,27 @@ class MainWindow(QMainWindow):
             Inputs:     None
             Outputs:    None
         """
+        # Create game dialog here? and set configuration of it in the createGame() Method??
+
+        # Initialize parent class
         super().__init__(*args, *kwargs)
+
+        # Create instance of database
+        self.__database = PsqlDatabase()
+        # Try to connect to the database
+        try:
+            # Connect to database
+            self.__database.connectToDatabase()
+        # Except a database error
+        except PsqlDatabaseError as error:
+            # String referencing README
+            refString="\nRefer to README.txt section titled\n\"INSTALLING DOCKER AND INITIALIZING DATABASE\""
+            # Critical error dialog
+            criticalErrorDialog = QMessageBox.critical(self,'Database Error',str(error)+refString, QMessageBox.Ok)
+            # Exit the application
+            self.quit(1)
+        # Get list of player names in database
+        self.names = self.__database.selectNames()
 
         #-------------------------------------------------------------------------------------------
         # MENU BAR
@@ -94,10 +119,14 @@ class MainWindow(QMainWindow):
         """
         # Watch options dialog
         watchDialog = WatchOptions()
-        # Connect submission to to configuration
-        watchDialog.configuration.connect(self.setConfiguration)
         # Execute the dialog box
-        watchDialog.exec()
+        response = watchDialog.exec()
+        # If dialog was accepted
+        if response == watchDialog.Accepted:
+            # Set configuration
+            configuration = watchDialog.getConfiguration()
+            # Create a game with the configuration
+            self.createGame(configuration)
 
 ####################################################################################################
 
@@ -109,13 +138,17 @@ class MainWindow(QMainWindow):
             Outputs:    None
         """
         # Single player option dialog
-        singleDialog = SinglePlayerOptions()
-        # Get player name
-        singleDialog.nameSignal.connect(self.setName)
-        # Connect submission of single player options to configuration
-        singleDialog.configuration.connect(self.setConfiguration)
-        # Execute the dialog box
-        singleDialog.exec()
+        singleDialog = SinglePlayerOptions(self.names)
+        # Execute the dialog and get a response
+        response = singleDialog.exec()
+        # If the dialog was accepted
+        if response == singleDialog.Accepted:
+            # Set the player name
+            self.playerName = singleDialog.getName()
+            # Set the configuration
+            configuration = singleDialog.getConfiguration()
+            # Create a game with the configuration
+            self.createGame(configuration)
 
 ####################################################################################################
 
@@ -127,13 +160,17 @@ class MainWindow(QMainWindow):
             Outputs:    None
         """
         # Multi player option dialog
-        multiDialog = MultiPlayerOptions()
-        # Get Player name
-        multiDialog.nameSignal.connect(self.setName)
-        # Connect Submission of multi player options to configuration
-        multiDialog.configuration.connect(self.setConfiguration)
-        # Execute the dialog box
-        multiDialog.exec()
+        multiDialog = MultiPlayerOptions(self.names)
+        # Execute dialog and get a response
+        response = multiDialog.exec()
+        # If the dialog was accepted
+        if response == multiDialog.Accepted:
+            # Set the player name
+            self.playerName = multiDialog.getName()
+            # Set the configuration
+            configuration = multiDialog.getConfiguration()
+            # Create a game with the configuration
+            self.createGame(configuration)
 
 ####################################################################################################
 
@@ -144,42 +181,31 @@ class MainWindow(QMainWindow):
             Outputs:    None
         """
         # Load game options dialog
-        loadDialog = LoadGameOptions()
-        # Get player name
-        loadDialog.nameSignal.connect(self.setName)
-        # Connect submission of load game to configuration
-        loadDialog.configuration.connect(self.setConfiguration)
-        # Execute dialog box
-        loadDialog.exec()
+        loadDialog = LoadGameOptions( self.__database, self.names)
+        # Execute dialog box and get response
+        response = loadDialog.exec()
+        # If dialog was accepted
+        if response == loadDialog.Accepted:
+            # Set the player name
+            self.playerName = loadDialog.getName()
+            # Set the configuration
+            configuration = loadDialog.getConfiguration()
+            # Create a game with the configuration
+            self.createGame(configuration)
 
 ####################################################################################################
 
-    def setConfiguration(self, configuration):
-        """ Sets the MainWindow configuration variable and executes a dialog based off the selected
+    def createGame(self, configuration):
+        """ Executes a dialog based off the selected
             configuration
 
             Inputs:     configuration <list>
             Outputs:    None
         """
-        # Get the window that sent the signal
-        sender = self.sender()
-        # Close the window that sent the signal
-        sender.close()
         # Create a game
         game = GameDialog(configuration, self.playerName)
         # Execute the game
         game.exec()
-
-####################################################################################################
-
-    def setName(self, name):
-        """ Sets the mainWindow player name variable
-
-            Inputs:     name <string>
-            Outputs:    None
-        """
-        # Set player name
-        self.playerName = name
 
 ####################################################################################################
 
@@ -199,7 +225,7 @@ class MainWindow(QMainWindow):
             Inputs:     event <event>
             Outputs:    None
         """
-        # Get current fram
+        # Get current frame
         currentFrame = self.movie.currentPixmap()
         # Current frame rectangle
         frameRect = currentFrame.rect()

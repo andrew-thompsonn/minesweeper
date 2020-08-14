@@ -43,7 +43,6 @@ class GameState():
             Inputs:     coordinates [[(<int>, <int>)]]
             Outputs:    None
         """
-
         # Assume it is not the first move
         self.firstMove = False
         # Get visible bricks
@@ -96,7 +95,6 @@ class GameState():
                 bricks[coordinates] = brick
         # Return dictionary
         return bricks
-
 
 ####################################################################################################
 

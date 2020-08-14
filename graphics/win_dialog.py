@@ -2,21 +2,28 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt5.QtGui import QIcon, QFont
 
 class WinDialog(QDialog):
+    """ A class to represent the dialog shown on a win """
+    
     def __init__(self, name, difficultyNum, time, *args, **kwargs):
+        # Initialize parent class
         super().__init__(*args, **kwargs)
-
-
-
+        # Set window geometry
         self.setFixedSize(250, 150)
-
+        # Get name
         self.name = name
-        if difficultyNum == 0:
-            difficulty = "Easy (10x10 - 10 Mines)"
-        elif difficultyNum == 1:
-            difficulty = "Medium (16x16 - 40 Mines)"
-        else:
-            difficulty = "Hard (16x30 - 99 Mines)"
 
+        # If difficutly is 0
+        if difficultyNum == 0:
+            # Set easy difficulty string
+            difficulty = "Easy (10x10 - 10 Mines)"
+        # If difficulty is 1s
+        elif difficultyNum == 1:
+            # Set medium difficulty string
+            difficulty = "Medium (16x16 - 40 Mines)"
+        # If difficulty is 2
+        else:
+            # Set hard difficulty string
+            difficulty = "Hard (16x30 - 99 Mines)"
         #-------------------------------------------------------------------------------------------
         # LAYOUTS
         #-------------------------------------------------------------------------------------------
@@ -29,6 +36,7 @@ class WinDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # WIDGETS
         #-------------------------------------------------------------------------------------------
+        # Title
         title = QLabel("WIN")
         title.setFont(QFont('Ariel', 14))
 
@@ -36,13 +44,11 @@ class WinDialog(QDialog):
         congratsLabel = QLabel("Player: "+self.name)
 
         # Game info
-
         difficultyLabel = QLabel("Difficulty: {}".format(difficulty))
         timeLabel = QLabel("Time: "+time)
 
         # Close button
         closeButton = QPushButton("close")
-
 
         #-------------------------------------------------------------------------------------------
         # LAYOUT MANAGEMENT

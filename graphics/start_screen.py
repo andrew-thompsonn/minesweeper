@@ -42,9 +42,9 @@ class StartScreen(QWidget):
         # WIDGETS
         #-------------------------------------------------------------------------------------------
         # Title font and color
-        titleLabel = QLabel("Minesweeper")
-        titleLabel.setFixedSize(355, 90)
-        titleLabel.setFont(QFont('Ariel', 40))
+        titleLabel = QLabel("Minesweeper Improved")
+        titleLabel.setFixedHeight(90)
+        titleLabel.setFont(QFont('Ariel', 30))
         titleLabel.setStyleSheet("color:black; background:transparent")
 
         # Subtitle font and color
@@ -108,16 +108,31 @@ class StartScreen(QWidget):
 ####################################################################################################
 
     def singlePlayerChosen(self):
+        """ Method to emit custom signal for singleplayer
+
+            Inputs:     None
+            Outputs:    None
+        """
         self.singlePlayerPressed.emit()
 
 ####################################################################################################
 
     def multiPlayerChosen(self):
+        """ Method to emit custom signal for multiplayer
+
+            Inputs:     None
+            Outputs:    None
+        """
         self.multiPlayerPressed.emit()
 
 ####################################################################################################
 
     def watchChosen(self):
+        """ Method to emit custom signal for watching the computer
+
+            Inputs:     None
+            Outputs:    None
+        """
         self.watchButtonPressed.emit()
 
 ####################################################################################################

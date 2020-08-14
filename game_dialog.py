@@ -12,8 +12,11 @@ from PyQt5.QtGui import QFont, QIcon
 import os
 import sys
 
+####################################################################################################
+
 class GameDialog(QDialog):
     """ A class for the dialog box a user plays the game in. """
+
 ####################################################################################################
     def __init__(self, configuration, playerName, *args, **kwargs):
         """ Initialize a new game dialog. Depending on configuration, determine correct board layout
@@ -29,7 +32,8 @@ class GameDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # CONFIGURATION
         #-------------------------------------------------------------------------------------------
-        coordinates = []
+        playerLoadGameCoords = []
+        computerLoadGameCoords = []
         # Get overall configuration
         self.config = configuration[0]
         # If load game configuration (4)
@@ -37,7 +41,17 @@ class GameDialog(QDialog):
             # Set configuration to single player
             self.config = 1
             # Get the key coordinates from configuration
-            coordinates = configuration[2]
+            playerLoadGameCoords = configuration[2]
+        # If loaded multiplayer configuration (5)
+        elif self.config == 5:
+            # Set configuration code to multiplayer
+            self.config = 2
+            # Get coordinates
+            coordinates = configuration[4]
+            # Player coordinates
+            playerLoadGameCoords = coordinates[0]
+            # Computer coordinates
+            computerLoadGameCoords = coordinates[1]
 
         # A list of difficulties for the player and computer
         difficulties = []
@@ -88,7 +102,7 @@ class GameDialog(QDialog):
         compInfoLayout = QHBoxLayout()
 
         # Game Engine
-        self.engine = Engine(self.config, self.difficulties, computerSkill, playerName, coordinates)
+        self.engine = Engine(self.config, self.difficulties, computerSkill, playerName, playerLoadGameCoords, computerLoadGameCoords)
 
         # Get player board
         playerBoard = self.engine.playerBoard
@@ -98,8 +112,13 @@ class GameDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # WIDGETS
         #-------------------------------------------------------------------------------------------
-        # Title
-        titleLabel = QLabel("Sweep Mines")
+        # Set title base on configuration
+        if self.config == 1:
+            titleLabel = QLabel("Singleplayer")
+        elif self.config == 2:
+            titleLabel = QLabel("Multiplayer")
+        else:
+            titleLabel = QLabel("Watch")
         titleLabel.setFont(QFont('Ariel', 20))
         titleLabel.setStyleSheet("Color:black;")
 
@@ -133,12 +152,13 @@ class GameDialog(QDialog):
         self.milliseconds = 0
         # Timer label
         self.gameTime = QLabel("Time: 0:00")
-
         # Create a timer
         self.timer = QTimer()
         # Connect timer to AI moves
         self.timer.timeout.connect(self.timerDisplay)
+        # Initialize a string to represent the time
         self.timeString = "0:00"
+        # If not watching the computer start the timer immediately
         if self.config == 1 or self.config == 2:
             # Start timer
             self.timer.start(1000)
@@ -161,6 +181,7 @@ class GameDialog(QDialog):
         # Add player game information
         playerInfoLayout.addWidget(flagCountLabel)
         playerInfoLayout.addWidget(self.playerFlagCount)
+        playerInfoLayout.addWidget(saveButton)
 
         # Add computer computer game information and start
         compInfoLayout.addWidget(compFlagCountLabel)
@@ -178,8 +199,6 @@ class GameDialog(QDialog):
 
         # If single-player is selected
         if self.config == 1:
-            # Add save button
-            playerLayout.addWidget(saveButton)
             # Add player board to board layout
             boardLayout.addLayout(playerLayout)
 
@@ -217,7 +236,7 @@ class GameDialog(QDialog):
         # If singleplayer
         if self.config == 1:
             # Connect option to save game
-            saveButton.clicked.connect(self.saveGame)
+            saveButton.clicked.connect(self.saveSinglePlayerGame)
         # If singleplayer AI
         if self.config == 3:
             # Connect the AI to the start button
@@ -225,6 +244,7 @@ class GameDialog(QDialog):
             startButton.clicked.connect(self.engine.runAIOnly)
         # If multiplayer
         if self.config == 2:
+            saveButton.clicked.connect(self.saveMultiplayerGame)
             # Start the AI when the game begins
             self.engine.runAI(computerSkill)
 
@@ -335,14 +355,27 @@ class GameDialog(QDialog):
 
 ####################################################################################################
 
-    def saveGame(self):
+    def saveSinglePlayerGame(self):
         """ A method to connect the save button to the a save method in the engine
 
             Inputs:     None
             Outputs:    None
         """
         # Connecting the save button to the engines method for saving games
-        self.engine.saveGame()
+        self.engine.saveSingleGame()
+        self.close()
+
+
+####################################################################################################
+
+    def saveMultiplayerGame(self):
+        """ A method to connect the save button to the multiplayer savve method in the engine
+
+            Inputs:     None
+            Outputs:    None
+        """
+        # Engine method for saving multiplayer games
+        self.engine.saveMultipleGames()
         self.close()
 
 ####################################################################################################

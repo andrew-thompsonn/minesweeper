@@ -3,8 +3,6 @@ from PyQt5.QtWidgets import QComboBox, QPushButton, QFrame, QLineEdit, QCheckBox
 from PyQt5.QtGui import QIcon, QFont, QImage, QPalette, QBrush
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
-from web.postgreSQL.psql_database import PsqlDatabase
-
 ####################################################################################################
 
 class SinglePlayerOptions(QDialog):
@@ -16,19 +14,17 @@ class SinglePlayerOptions(QDialog):
 
 ####################################################################################################
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, names, *args, **kwargs):
         # Initialize parent class
         super().__init__(*args, **kwargs)
         # Set default geometry
         self.setFixedSize(315, 200)
-        # Create instance of database
-        gameDatabase = PsqlDatabase()
-        # Connect to database
-        gameDatabase.connectToDatabase()
         # Get all names in the database
-        self.names = gameDatabase.selectNames()
+        self.names = names
         # Set exit code to 1
         self._exitCode = 1
+        # Single player configuration code is 1
+        self.config = 1
 
         #-------------------------------------------------------------------------------------------
         # LAYOUTS
@@ -105,9 +101,10 @@ class SinglePlayerOptions(QDialog):
         # SIGNAL MANAGEMENT
         #-------------------------------------------------------------------------------------------
         # Connect submit button to send configuration
-        submitButton.clicked.connect(self.sendConfiguration)
+        submitButton.clicked.connect(self.setConfiguration)
         # Connect name line edit to validate name
         self.nameLineEdit.textChanged.connect(self.checkName)
+        #submitButton.clicked.connect(self.accept)
 
 ####################################################################################################
 
@@ -138,27 +135,41 @@ class SinglePlayerOptions(QDialog):
 
 ####################################################################################################
 
-    def sendConfiguration(self):
-        """ Emit a signal containing the user's chosen configuration
+    def setConfiguration(self):
+        """ Set the user's chosen configruration
 
             Inputs:     None
             Outputs:    None
         """
-        # Singliplayer configuration code is 1
-        config = 1
         # If valid exit code
         if self._exitCode == 0:
             # Get the name from the line edit
-            name = self.nameLineEdit.text()
-            # Emit the player's name
-            self.nameSignal.emit(name)
+            self.name = self.nameLineEdit.text()
             # Get the difficulty from the combo box
             difficulty = self.difficultyBox.currentIndex()
-            # Format configuration
-            configuration = (config, difficulty)
-            # Emit a signal containing the configuration code an difficulty
-            self.configuration.emit(configuration)
+            # Format the configuration
+            self.configuration = (self.config, difficulty)
             # Close window
-            self.close()
+            self.accept()
+
+####################################################################################################
+
+    def getName(self):
+        """ Method to return the player's name
+
+            Inputs:     None
+            Outputs:    name <string>
+        """
+        return self.name
+
+####################################################################################################
+
+    def getConfiguration(self):
+        """ Method to return the chosen configuration
+
+            Inputs:     None
+            Outputs:    configruation <tuple>
+        """
+        return self.configuration
 
 ####################################################################################################

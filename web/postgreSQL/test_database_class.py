@@ -7,7 +7,7 @@ def main():
 
     database = PsqlDatabase()
     database.connectToDatabase()
-    database.getSinglePlayerScores()
+    database.checkMultiplayer(2)
 
 
 if __name__ == "__main__":

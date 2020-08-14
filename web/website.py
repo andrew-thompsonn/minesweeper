@@ -9,89 +9,43 @@ import string
 
 from postgreSQL.psql_database import PsqlDatabase
 
-env = Environment(loader=FileSystemLoader('templates'))
+env = Environment(loader=FileSystemLoader('web/templates'))
+####################################################################################################
 
 class Application(object):
+    """ A class to reptresent the web application  """
+
 ####################################################################################################
+
     @cherrypy.expose
     def index(self, *args, **kwargs):
+        # Home page template
         template = env.get_template('home.html')
-
+        # Render template
         return template.render()
 
 ####################################################################################################
+
     @cherrypy.expose
     def scores(self, *args, **kwargs):
+        # Scores page template
         template = env.get_template('scores.html')
+        # Create instance of database
         database = PsqlDatabase()
+        # Connect to the database
         database.connectToDatabase()
+        # Get single player score data
         easyData, mediumData, hardData = database.getSinglePlayerScores()
+        # Get computer score data
         compEasyData, compMediumData, compHardData = database.getAIScores()
+        # Get multiplayer data
         multiPlayerData = database.getMultiplayerScores()
-
-
+        # Render template with game data
         return template.render(sEasy = easyData, sMed = mediumData, sHard = hardData,
                                cEasy = compEasyData, cMed = compMediumData, cHard = compHardData,
                                multiData = multiPlayerData)
 
 ####################################################################################################
-    @cherrypy.expose
-    def about(self, *args, **kwargs):
-        template = env.get_template('about.html')
-
-        return template.render()
-
-####################################################################################################
-    # @cherrypy.expose
-    # def about(self, *args, **kwargs):
-    #     template = env.get_template('about.html')
-    #
-    #     # Create Database Object
-    #     bvcDatabase = PsqlDatabase()
-    #     # Connect to database
-    #     bvcDatabase.connectToDatabase()
-    #     # Get employee data
-    #     data = bvcDatabase.select()
-    #
-    #     # Formatting employee data as list
-    #     data1 = []
-    #     for d in data:
-    #         d1 = list(d)
-    #         data1.append(d1)
-    #
-    #     # Render template with data
-    #     return template.render(employees = data1)
-
-    ################################################################################################
-    # @cherrypy.expose
-    # def signup(self, *args, **kwargs):
-    #     template = env.get_template('signup.html')
-    #     return template.render()
-
-    ################################################################################################
-    # @cherrypy.expose
-    # def submitted(self, *args, **kwargs):
-    #     template = env.get_template('submitted.html')
-    #     return template.render()
-
-    # @cherrypy.expose
-    # def insertAppointment(self, fname, lname, number, email, pname, breed, date,
-    #                       age, vet = None, groom = None, care = None, obedience = None,
-    #                       advanced = None, adventure = None):
-    #
-    #     # Create Database object
-    #     bvcDatabase = PsqlDatabase()
-    #     # Connect to database
-    #     bvcDatabase.connectToDatabase()
-    #     # Insert appointment information
-    #     bvcDatabase.insert(fname, lname, number, email, pname, breed, date,
-    #                           age, vet, groom, care, obedience, advanced, adventure)
-    #     # Display the submmitted page
-    #     template = env.get_template('submitted.html')
-    #     return template.render()
-
-    ################################################################################################
-
 
 if __name__ == "__main__":
     conf = {
@@ -105,9 +59,11 @@ if __name__ == "__main__":
         },
         '/static': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': './public'
+            'tools.staticdir.dir': './web/public'
         }
     }
+
+####################################################################################################
 
 webapp = Application()
 cherrypy.quickstart(webapp, '/', conf)

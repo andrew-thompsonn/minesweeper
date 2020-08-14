@@ -27,7 +27,7 @@ CREATE TABLE Save_State (
     Size varchar(50) NOT NULL,
     Visible_Bricks integer[] NOT NULL,
     Mine_Locations integer[] NOT NULL,
-    flag_locations integer[] NOT NULL,
+    flag_locations integer[],
     GameID integer NOT NULL,
     datetime TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (SaveId),

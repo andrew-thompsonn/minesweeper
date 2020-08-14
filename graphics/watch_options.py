@@ -7,8 +7,6 @@ from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
 class WatchOptions(QDialog):
     """ Class to represent the dialog box for watch options """
-    # Signal for game configuration
-    configuration = pyqtSignal(object)
 
 ####################################################################################################
 
@@ -17,6 +15,8 @@ class WatchOptions(QDialog):
         super().__init__(*args, **kwargs)
         # Set geometry of window
         self.setFixedSize(315, 200)
+        # Watch configuration code is 3
+        self.config = 3
 
         #-------------------------------------------------------------------------------------------
         # LAYOUTS
@@ -80,21 +80,33 @@ class WatchOptions(QDialog):
         #-------------------------------------------------------------------------------------------
         # SIGNAL MANAGEMENT
         #-------------------------------------------------------------------------------------------
-        # Connect submit button to send configuration
-        submitButton.clicked.connect(self.submitPressed)
+        # Connect submit button to set configuration
+        submitButton.clicked.connect(self.setConfiguration)
 
 ####################################################################################################
 
-    def submitPressed(self):
-        # Watch configuration code is 3
-        config = 3
+    def setConfiguration(self):
+        """ Set the user's chosen configuration
+
+            Inputs:     None
+            Outputs:    None
+        """
         # Get computer difficulty from combo box
         computerDifficulty = self.difficultyBox.currentIndex()
         # Create configuration
-        configuration = (config, computerDifficulty)
-        # Emit configuration
-        self.configuration.emit(configuration)
+        self.configuration = (self.config, computerDifficulty)
         # Close window
-        self.close()
+        self.accept()
+
+####################################################################################################
+
+    def getConfiguration(self):
+        """ Method to return the chosen configuration
+
+            Inputs:     None
+            Outputs:    configuration <tuple>
+        """
+        # Return configuration
+        return self.configuration
 
 ####################################################################################################

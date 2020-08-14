@@ -3,15 +3,24 @@
 import random
 import os
 import psycopg2 as psql
-from pprint import pprint
+
+
+####################################################################################################
+
+class PsqlDatabaseError(Exception):
+    """ Class to represent database error """
+    pass
+
+####################################################################################################
 
 class PsqlDatabase:
+    """ A class to represent and interact with the database """
+
 ####################################################################################################
 
     def __init__(self, _host="127.0.0.1", _port = 5433, _database="game", _user_name="username", _passwd="example"):
         self.cxn = None
         self.cursor = None
-
         self.host = _host
         self.database = _database
         self.port = _port
@@ -37,7 +46,9 @@ class PsqlDatabase:
             self.cursor = self.cxn.cursor()
 
         except psql.Error as error:
-            print("Error connecting to database. " + str(error))
+            errorMessage = "Error connecting to database. " + str(error)
+            print(errorMessage)
+            raise PsqlDatabaseError(errorMessage)
 
 ####################################################################################################
 
@@ -153,10 +164,50 @@ class PsqlDatabase:
         # Commit changes to the database
         self.commit()
 
+####################################################################################################
+
+
+    def checkMultiplayer(self, saveID):
+        """ Check if a saved game was multiplayer. If it was, return the opponents gameID. If not
+            return None.
+
+            Inputs:     saveID <int>
+            Outputs:    None/oppopnentGameID <int>
+        """
+        # Query to get the game ID for the saved game
+        self.cursor.execute("SELECT gameID from save_state where saveID = {};".format(saveID))
+        # Get the game ID
+        gameID = int(self.cursor.fetchone()[0])
+        # Query to get games played against the same gameID
+        self.cursor.execute("SELECT played_against from game_info where gameid = {};".format(gameID))
+        # Get the opponents gameID
+        opponentGameID = self.cursor.fetchone()
+        # If not a multiplayer game
+        if opponentGameID[0] == None:
+            # Return None
+            return None, None
+        # If a multiplayter game
+        else:
+            # Get opponents gameID
+            gameID = int(opponentGameID[0])
+            # Query for computer name
+            self.cursor.execute("SELECT name from player_info inner join game_info on player_info.playerID = game_info.playerID where game_info.gameID = {};".format(gameID))
+            # Get Computer name
+            computerName = self.cursor.fetchone()[0]
+            # Dictionary of computer names and skills
+            computerSkills = {"Computer_1": 0, "Computer_2":1, "Computer_3":2}
+            # Get the skill based on computer name
+            skill = computerSkills[computerName]
+            # Query for save id
+            self.cursor.execute("select saveid from save_state where gameid = {};".format(gameID))
+            # Get the save id
+            saveID = int(self.cursor.fetchone()[0])
+            # Return the save id and computer skill
+            return saveID, skill
 
 ####################################################################################################
 
-    def insertSave(self, gameState, time, player, loadGameID = None):
+    def insertSave(self, gameState, time, player, loadGameID=None, multiPlayerFlag=None):
         """ Insert game data as a new save_state in the database.
 
             Inputs:     gameState <GameState>
@@ -169,16 +220,34 @@ class PsqlDatabase:
         if loadGameID == None:
             # Create new game ID
             gameID = self.incrementGameID()
-            # Create instance of in progress game in game_info table
-            self.insertGame(gameState, player, time, gameID)
-        # Otherwise,
+            # If a multiplayer game
+            if multiPlayerFlag != None :
+                # Insert game with played against column
+                self.insertGame(gameState, player, time, gameID, multiPlayerFlag)
+            # Otherwise,
+            else:
+                # Insert game as singleplayer
+                self.insertGame(gameState, player, time, gameID)
+
+        # If game was loaded
         else:
             # Use the loaded game id
             gameID = loadGameID
-            # Delete the old save
+            # Delete the old save_state entry
             self.cursor.execute("DELETE FROM save_state where gameID = {};".format(gameID))
+            # Delete the old game_info entry
+            self.cursor.execute("DELETE FROM game_info where gameID = {};".format(gameID))
+            # If a multiplayer game
+            if multiPlayerFlag != None:
+                # Insert with multiplayer flag
+                self.insertGame(gameState, player, time, gameID, multiPlayerFlag)
+            # If singleplayer
+            else:
+                # Insert game as singleplayer
+                self.insertGame(gameState, player, time, gameID)
             # Commit to db
             self.commit()
+
         # Create string to represent size
         size = "("+str(gameState.sizeX)+" x "+str(gameState.sizeY)+")"
         # Create new save id
@@ -270,7 +339,7 @@ class PsqlDatabase:
         elif size == "(16 x 16)":
             difficulty = 1
         else:
-            difficulty = 3
+            difficulty = 2
 
         # Convert visible bricks to a list of tuples
         visibleBrickCoords = []
@@ -282,10 +351,17 @@ class PsqlDatabase:
         for coordinate in gameStateInformation[2]:
             mineCoords.append(tuple(coordinate))
 
-        # Convert flag coordinates to a list of tuples
+        # Initialize array for flag coordinates
         flagCoords = []
-        for coordinate in gameStateInformation[3]:
-            flagCoords.append(tuple(coordinate))
+        # If no flagged bricks
+        if not gameStateInformation[3]:
+            # Do nothing
+            pass
+        # Otherwise
+        else:
+            # Convert flag coordinates to a list of tuples
+            for coordinate in gameStateInformation[3]:
+                flagCoords.append(tuple(coordinate))
 
         gameID = int(gameStateInformation[4])
 

@@ -2,8 +2,6 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox
 from PyQt5.QtGui import QIcon, QFont, QImage, QPalette, QBrush
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
-from web.postgreSQL.psql_database import PsqlDatabase
-
 ####################################################################################################
 
 class MultiPlayerOptions(QDialog):
@@ -15,20 +13,17 @@ class MultiPlayerOptions(QDialog):
 
 ####################################################################################################
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, names, *args, **kwargs):
         # Initialize parent class
         super().__init__(*args, **kwargs)
         # Set window geometry
         self.setFixedSize(420, 200)
-        # Create instance of databse
-        gameDatabase = PsqlDatabase()
-        # Connect to databse
-        gameDatabase.connectToDatabase()
         # Get all names in database
-        self.names = gameDatabase.selectNames()
+        self.names = names
         # Set exit code to 1
         self._exitCode = 1
-
+        # Multiplayer configuration code is 2
+        self.config = 2
         #-------------------------------------------------------------------------------------------
         # LAYOUTS
         #-------------------------------------------------------------------------------------------
@@ -117,8 +112,8 @@ class MultiPlayerOptions(QDialog):
         #-------------------------------------------------------------------------------------------
         # SIGNAL MANAGEMENT
         #-------------------------------------------------------------------------------------------
-        # Connect submit button to send configuration
-        submitButton.clicked.connect(self.sendConfiguration)
+        # Connect submit button to set configuration
+        submitButton.clicked.connect(self.setConfiguration)
         # Connect line edit to check name
         self.nameLineEdit.textChanged.connect(self.checkName)
 
@@ -151,19 +146,16 @@ class MultiPlayerOptions(QDialog):
 
 ####################################################################################################
 
-    def sendConfiguration(self):
+    def setConfiguration(self):
         """ Emit singals with user information and chosen configuration
 
             Inputs:     None
             Outputs:    None
         """
+        # If valid exit code
         if self._exitCode == 0:
             # Get name for line edit
-            name = self.nameLineEdit.text()
-            # Emit name
-            self.nameSignal.emit(name)
-            # Set multiplayer configuration
-            config = 2
+            self.name = self.nameLineEdit.text()
             # Get player difficulty
             playerDifficulty = self.playerDifficultyBox.currentIndex()
             # Get computer difficulty
@@ -171,10 +163,30 @@ class MultiPlayerOptions(QDialog):
             # Get computer skill
             computerSkill = self.computerSkillBox.currentIndex()
             # Assign configuration tuple
-            configuration = (config, playerDifficulty, computerDifficulty, computerSkill)
-            # Send configuration
-            self.configuration.emit(configuration)
+            self.configuration = (self.config, playerDifficulty, computerDifficulty, computerSkill)
             # Close window
-            self.close()
+            self.accept()
+
+####################################################################################################
+
+    def getName(self):
+        """ Method to return the player's name
+
+            Inputs:     None
+            Outputs:    name <string>
+        """
+        # Return player's name
+        return self.name
+
+####################################################################################################
+
+    def getConfiguration(self):
+        """ Method to return the chosen configuration
+
+            Inputs:     None
+            Outputs:    configuration <tuple>
+        """
+        # Return the selected configuration
+        return self.configuration
 
 ####################################################################################################

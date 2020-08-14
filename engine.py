@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 3,990
+# 4,568
 
 import time
 from random import randrange
@@ -36,7 +36,7 @@ class Engine(QObject):
 
 ####################################################################################################
 
-    def __init__(self, config, difficulties, computerSkill, playerName, coordinates = [], *args, **kwargs):
+    def __init__(self, config, difficulties, computerSkill, playerName, playerLoad, computerLoad, *args, **kwargs):
         """ Initialize a player gameState, player board, computer game state, computer board,
             according to the difficulties and skills selected. If the user requests to load a game
             initialize a gamestate from load info.
@@ -75,14 +75,25 @@ class Engine(QObject):
         # Default loadGameID to invalid value
         self.loadGameID = 0
         # If load game info was passed
-        if coordinates:
+        if playerLoad:
             # Load the game into current gameState
-            self.playerGameState.loadGame(coordinates)
+            self.playerGameState.loadGame(playerLoad)
             # Update the graphics
             self.playerBoard.changeMany(self.playerGameState)
             # Loaded game ID
-            self.loadGameID = coordinates[3]
+            self.loadGameID = playerLoad[3]
             print("Loaded gameID: {}".format(self.loadGameID))
+
+        # Default loadGameID to invalid value
+        self.computerLoadGameID = 0
+        # If computer load game info was passed
+        if computerLoad:
+            # Load the game into the current gameState
+            self.computerGameState.loadGame(computerLoad)
+            # Update the graphics
+            self.computerBoard.changeMany(self.computerGameState)
+            # Loaded gameID
+            self.computerLoadGameID = computerLoad[3]
 
         # If configuration is single or multiplayer
         if config == 1 or config == 2:
@@ -305,8 +316,6 @@ class Engine(QObject):
                     print("Guessing {} with probability of {}".format(coordinates, prob))
                 # Commit guess
                 self.commitComputerAction("leftclick", coordinates, self.computerGameState)
-                # Handle evenets
-                QApplication.processEvents()
 
 ####################################################################################################
 
@@ -508,13 +517,13 @@ class Engine(QObject):
                         player    <Player>
             Outputs:    None
         """
-        print("INSERTING NEW GAME INTO DATABASE... ")
         # Get time value
         time = round(self.gameTime, 3)
         # If there was a loaded game
         if self.loadGameID != 0:
             # Update the database to finish a loaded game
             self.gameDatabase.finishSavedGame(gameState, self.player, self.loadGameID, time)
+            self.gameDatabase.finishSavedGame(self.computerGameState, self.computerPlayer, self.computerLoadGameID, time)
         # If multiplayer is enabled
         elif self.configuration == 2:
             # Get gameID for computer
@@ -535,21 +544,17 @@ class Engine(QObject):
             gameID = self.gameDatabase.incrementGameID()
             # Insert into database
             self.gameDatabase.insertGame(gameState, player, time, gameID)
-        print("done")
 
 ####################################################################################################
 
-    def saveGame(self):
-        """ Inserts a game in progress that the user has saved into the database.
+    def saveGame(self, gameState, player, multiplayerFlag=None):
+        """ Saves a game to the database to be loaded later.
 
-            Inputs:     None
+            Inputs:     gameState <GameState>
+                        player <Player>
+                        multiplayerFlag <Bool>
             Outputs:    None
         """
-        print("SAVING GAME ...")
-        # Get player gamestate
-        gameState = self.playerGameState
-        # Get player info
-        player = self.player
         # Get end time
         self.endTime = time.time()
         # Calculate total time
@@ -557,15 +562,78 @@ class Engine(QObject):
         # Get rounded version of gametime
         gameTime = round(self.gameTime, 3)
 
-        # If already in a game that was saved
+        # If current game was loaded
         if self.loadGameID != 0:
             # Overwrite previous save state
             print("Overwriting previous save state...")
-            self.gameDatabase.insertSave(gameState, gameTime, player, self.loadGameID)
+            self.gameDatabase.insertSave(gameState, gameTime, player, self.loadGameID, multiplayerFlag)
         # Otherwise,
         else:
             # Save the game to the database as a new game
-            self.gameDatabase.insertSave(gameState, gameTime, player)
+            self.gameDatabase.insertSave(gameState, gameTime, player, None, multiplayerFlag)
+
+####################################################################################################
+    def saveSingleGame(self):
+        """ Inserts a game in progress that the user has saved into the database.
+
+        Inputs:     None
+        Outputs:    None
+        """
+        # If the first move has not been player
+        if self.playerGameState.firstMove:
+            # Exit
+            return None
+
+        # Get player gamestate
+        gameState = self.playerGameState
+        # Get player info
+        player = self.player
+        # Save the game
+        self.saveGame(gameState, player)
+####################################################################################################
+    def saveMultipleGames(self):
+        """ Inserts multiplayer games in progress that the user saves into the database
+
+            Inputs:     None
+            Outputs:    None
+        """
+        # If it's the first move
+        if self.playerGameState.firstMove:
+            # Exit
+            return None
+
+        # Initialize IDs
+        playerAgainstID = None
+        compAgainstID = None
+
+        # If not a loaded game
+        if not self.loadGameID:
+            # Get gameID for computer
+            compGameID = self.gameDatabase.incrementGameID()
+            # Get gameID for player
+            playerGameID = compGameID + 1
+            # playing against computer
+            playerAgainstID = compGameID
+            # playing against player
+            compAgainstID = playerGameID
+        # Else, game is already loaded
+        else:
+            # Get playing against for computer
+            compAgainstID = self.loadGameID
+            # Get playing against for player
+            playerAgainstID = self.computerLoadGameID
+
+        # Get player gamestate
+        playerGameState = self.playerGameState
+        # Get computer gamestate
+        computerGameState = self.computerGameState
+        # Get human player
+        player = self.player
+        # Get computer player
+        computer = self.computerPlayer
+        # Save games
+        self.saveGame(computerGameState, computer, compAgainstID)
+        self.saveGame(playerGameState, player, playerAgainstID)
 
 ####################################################################################################
 

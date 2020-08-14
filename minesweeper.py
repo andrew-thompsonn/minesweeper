@@ -1,65 +1,39 @@
 #!/usr/bin/env python3
-from jinja2 import Environment, FileSystemLoader
-import os
-import os.path
-import cherrypy
-import random
-import string
-
-#from web.website import Application
 
 import sys
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QProcess
 from main_window import MainWindow
 
+class Process(QProcess):
+    def __init__(self):
+        # Initialize base class
+        QProcess.__init__(self)
 
-# Created functions for multiprocessing, not sure exactly how this will work though
-
-####################################################################################################
-
-# def startGUI():
-#     app = QApplication(sys.argv)
-#
-#     mainWindow = MainWindow()
-#
-#     mainWindow.show()
-#
-#     exit(app.exec())
-#
-# ####################################################################################################
-#
-def startWeb():
-    # Configuration for cherrypy server
-    conf = {
-        'global': {
-            'server.socket_host': '0.0.0.0',
-            'server.socket_port': 8080
-        },
-        '/': {
-            'tools.sessions.on': True,
-            'tools.staticdir.root': os.path.abspath(os.getcwd())
-        },
-        '/static': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': './public'
-        }
-    }
-
-    webapp = Application()
-    cherrypy.quickstart(webapp, '/', conf)
-
-####################################################################################################
+        # Combine both standard in and standard error into one channel (standard in)
+        self.setProcessChannelMode(QProcess.MergedChannels)
 
 def main():
-    #startWeb()
+
 
     app = QApplication(sys.argv)
+
+    #------------------------------
+    # webProcess = Process()
+    # webProcess.start("./web/website.py")
+    #
+    # guiProcess = Process()
+    # guiProcess.start()
+
+    #------------------------------
 
     mainWindow = MainWindow()
 
     mainWindow.show()
 
     exit(app.exec())
+
+    webProcess.stop()
 
 if __name__ == "__main__":
     main()
