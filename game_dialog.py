@@ -18,7 +18,7 @@ class GameDialog(QDialog):
     """ A class for the dialog box a user plays the game in. """
 
 ####################################################################################################
-    def __init__(self, configuration, playerName, *args, **kwargs):
+    def __init__(self, configuration, playerName, database, *args, **kwargs):
         """ Initialize a new game dialog. Depending on configuration, determine correct board layout
             and configuration the engine needs to be initialized in.
 
@@ -102,7 +102,7 @@ class GameDialog(QDialog):
         compInfoLayout = QHBoxLayout()
 
         # Game Engine
-        self.engine = Engine(self.config, self.difficulties, computerSkill, playerName, playerLoadGameCoords, computerLoadGameCoords)
+        self.engine = Engine(self.config, self.difficulties, computerSkill, playerName, playerLoadGameCoords, computerLoadGameCoords, database)
 
         # Get player board
         playerBoard = self.engine.playerBoard
@@ -135,14 +135,14 @@ class GameDialog(QDialog):
         flagCountLabel.setFixedWidth(30)
         flagCountLabel.setFixedHeight(30)
         flagCountLabel.setIcon(flagCountIcon)
-        self.playerFlagCount = QLabel(str(self.engine.playerGameState.mines))
+        self.playerFlagCount = QLabel(str(self.engine.playerGameState.flags))
 
         # Flag count(Computer)
         compFlagCountLabel = QPushButton()
         compFlagCountLabel.setFixedWidth(30)
         compFlagCountLabel.setFixedHeight(30)
         compFlagCountLabel.setIcon(flagCountIcon)
-        self.compFlagCount = QLabel(str(self.engine.computerGameState.mines))
+        self.compFlagCount = QLabel(str(self.engine.computerGameState.flags))
 
         # Initialize second counter
         self.seconds = 0

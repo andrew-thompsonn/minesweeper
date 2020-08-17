@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import QPushButton, QFrame, QLineEdit, QCheckBox, QTextEdit
 from PyQt5.QtGui import QIcon, QFont, QImage, QPalette, QBrush
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 
-from web.postgreSQL.psql_database import PsqlDatabase
 
 ####################################################################################################
 

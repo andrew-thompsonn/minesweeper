@@ -121,7 +121,7 @@ class PsqlDatabase:
 
 ####################################################################################################
 
-    def insertGame(self, gameState, player, time, gameID, multiplayerFlag = None):
+    def insertGame(self, gameState, player, time, gameID, multiplayerFlag=None):
         """ Insert game data into the database for games that have been saved or completed.
 
             Inputs:     gameState <GameState>
@@ -165,7 +165,6 @@ class PsqlDatabase:
         self.commit()
 
 ####################################################################################################
-
 
     def checkMultiplayer(self, saveID):
         """ Check if a saved game was multiplayer. If it was, return the opponents gameID. If not
@@ -216,6 +215,8 @@ class PsqlDatabase:
                         loadGameID <int>
             Outputs:    None
         """
+        print("Inserting save, multiplayer flag: {}".format(multiPlayerFlag))
+
         # If game was not loaded
         if loadGameID == None:
             # Create new game ID
@@ -231,6 +232,7 @@ class PsqlDatabase:
 
         # If game was loaded
         else:
+            print("Overwrote saveState******************")
             # Use the loaded game id
             gameID = loadGameID
             # Delete the old save_state entry
@@ -239,6 +241,7 @@ class PsqlDatabase:
             self.cursor.execute("DELETE FROM game_info where gameID = {};".format(gameID))
             # If a multiplayer game
             if multiPlayerFlag != None:
+                print("Overwrote previous save for {}".format(player.name))
                 # Insert with multiplayer flag
                 self.insertGame(gameState, player, time, gameID, multiPlayerFlag)
             # If singleplayer
@@ -268,6 +271,8 @@ class PsqlDatabase:
             flagArrayString = 'NULL'
         # Otherwise, get a postgres array string for flag locations
         else: flagArrayString = self.createArrayString(gameState.flagCoords)
+
+        print(flagArrayString)
 
         # Insert statement
         insertString = "INSERT INTO save_state (saveid, size, visible_bricks, mine_locations, flag_locations, gameID, datetime ) "
@@ -370,7 +375,7 @@ class PsqlDatabase:
 
 ####################################################################################################
 
-    def finishSavedGame(self, gameState, player, gameID, time):
+    def finishSavedGame(self, gameState, player, gameID, time, multiplayerFlag=False):
         """ Takes care of housekeeping when a previously saved game is finished.
 
             Inputs:     gameState <GameState>
@@ -379,6 +384,12 @@ class PsqlDatabase:
                         time <float>
             Outputs:    None
         """
+
+        if multiplayerFlag:
+            self.cursor.execute("Select played_against from game_info where gameid = {};".format(gameID))
+            playedAgainst = int(self.cursor.fetchone()[0])
+
+
         # Deleter the save info
         self.cursor.execute("Delete from save_state where gameID = {};".format(gameID))
         self.commit()
@@ -391,8 +402,15 @@ class PsqlDatabase:
         # Delete the game info
         self.cursor.execute("Delete from game_info where gameID = {};".format(gameID))
         self.commit()
-        # Update with new game info
-        self.insertGame(gameState, player, newTime, gameID)
+
+        if not multiplayerFlag:
+            # Update with new game info
+            self.insertGame(gameState, player, newTime, gameID)
+        else:
+            # Update with new game info (and multiplayer info)
+            self.insertGame(gameState, player, newTime, gameID, playedAgainst)
+
+
 
 ####################################################################################################
 

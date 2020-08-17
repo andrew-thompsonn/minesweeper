@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# 4,568
 
 import time
 from random import randrange
@@ -36,7 +35,7 @@ class Engine(QObject):
 
 ####################################################################################################
 
-    def __init__(self, config, difficulties, computerSkill, playerName, playerLoad, computerLoad, *args, **kwargs):
+    def __init__(self, config, difficulties, computerSkill, playerName, playerLoad, computerLoad, database, *args, **kwargs):
         """ Initialize a player gameState, player board, computer game state, computer board,
             according to the difficulties and skills selected. If the user requests to load a game
             initialize a gamestate from load info.
@@ -57,9 +56,7 @@ class Engine(QObject):
         # Board properties that correspond to difficulty
         self.boardProperties = [(10, 10, 10), (16, 16, 40), (16, 30, 99)]
         # Database for save games, player info, and game logs
-        self.gameDatabase = PsqlDatabase()
-        # Connect to database
-        self.gameDatabase.connectToDatabase()
+        self.gameDatabase = database
         # Get player difficulty
         playerDifficulty = difficulties[0]
         # Get computer difficulty
@@ -94,6 +91,7 @@ class Engine(QObject):
             self.computerBoard.changeMany(self.computerGameState)
             # Loaded gameID
             self.computerLoadGameID = computerLoad[3]
+            print("Loaded Computer gameID: {}".format(self.computerLoadGameID))
 
         # If configuration is single or multiplayer
         if config == 1 or config == 2:
@@ -519,11 +517,17 @@ class Engine(QObject):
         """
         # Get time value
         time = round(self.gameTime, 3)
+        multiplayerFlag = False
+        if self.configuration == 2:
+            multiplayerFlag = True
         # If there was a loaded game
         if self.loadGameID != 0:
             # Update the database to finish a loaded game
-            self.gameDatabase.finishSavedGame(gameState, self.player, self.loadGameID, time)
-            self.gameDatabase.finishSavedGame(self.computerGameState, self.computerPlayer, self.computerLoadGameID, time)
+            if self.configuration == 2:
+                self.gameDatabase.finishSavedGame(gameState, self.player, self.loadGameID, time, multiplayerFlag)
+                self.gameDatabase.finishSavedGame(self.computerGameState, self.computerPlayer, self.computerLoadGameID, time, multiplayerFlag)
+            else:
+                self.gameDatabase.finishSavedGame(gameState, self.player, self.loadGameID, time)
         # If multiplayer is enabled
         elif self.configuration == 2:
             # Get gameID for computer
@@ -562,17 +566,31 @@ class Engine(QObject):
         # Get rounded version of gametime
         gameTime = round(self.gameTime, 3)
 
-        # If current game was loaded
-        if self.loadGameID != 0:
-            # Overwrite previous save state
-            print("Overwriting previous save state...")
-            self.gameDatabase.insertSave(gameState, gameTime, player, self.loadGameID, multiplayerFlag)
-        # Otherwise,
-        else:
-            # Save the game to the database as a new game
-            self.gameDatabase.insertSave(gameState, gameTime, player, None, multiplayerFlag)
+        if self.configuration == 1:
+            # If singleplayer previously saved game
+            if self.loadGameID != 0:
+                # Overwrite old save
+                self.gameDatabase.insertSave(gameState, gameTime, player, self.loadGameID, None)
+            else:
+                self.gameDatabase.insertSave(gameState, gameTime, player, None, None)
+        elif self.configuration == 2:
+            # If current game was loaded
+            if self.loadGameID != 0 and player.isHuman:
+                # Overwrite previous save state
+                print("Overwriting {} previous save state...".format(player.name))
+                self.gameDatabase.insertSave(gameState, gameTime, player, self.loadGameID, multiplayerFlag)
+            elif self.computerLoadGameID != 0 and not player.isHuman:
+                # Overwrite previous save state
+                print("Overwriting {} previous save state...".format(player.name))
+                self.gameDatabase.insertSave(gameState, gameTime, player, self.computerLoadGameID, multiplayerFlag)
+
+            # Otherwise,
+            else:
+                # Save the game to the database as a new game
+                self.gameDatabase.insertSave(gameState, gameTime, player, None, multiplayerFlag)
 
 ####################################################################################################
+
     def saveSingleGame(self):
         """ Inserts a game in progress that the user has saved into the database.
 
@@ -590,6 +608,7 @@ class Engine(QObject):
         player = self.player
         # Save the game
         self.saveGame(gameState, player)
+
 ####################################################################################################
     def saveMultipleGames(self):
         """ Inserts multiplayer games in progress that the user saves into the database

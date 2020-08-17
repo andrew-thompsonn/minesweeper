@@ -275,7 +275,6 @@ class GameState():
         # Check for win
         self.checkWin()
 
-
 ####################################################################################################
 
     def clickMany(self, coordinate):

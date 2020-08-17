@@ -21,6 +21,12 @@ from web.postgreSQL.psql_database import PsqlDatabase, PsqlDatabaseError
 class MainWindow(QMainWindow):
     """ Class for the main window of the application. """
 
+
+    # Create hyperlink to web address
+    """  http://0.0.0.0:8080/  """
+
+    # Pass database into dialog and engine
+
 ####################################################################################################
     def __init__(self, *args, **kwargs):
         """ Initialize a main window for the minesweeper application. Contains buttons connected
@@ -29,8 +35,6 @@ class MainWindow(QMainWindow):
             Inputs:     None
             Outputs:    None
         """
-        # Create game dialog here? and set configuration of it in the createGame() Method??
-
         # Initialize parent class
         super().__init__(*args, *kwargs)
 
@@ -72,11 +76,12 @@ class MainWindow(QMainWindow):
         # Standard shortcut
         quitAction.setShortcut("CTRL+Q")
 
-        # Edit menu
-        editMenu = menuBar.addMenu("Edit")
+        # Theme menu
+        themeMenu = menuBar.addMenu("Themes")
         # Edit/preferences - will be able to change color theme
-        prefAction = editMenu.addMenu("Preferences")
+        poopSweeper = themeMenu.addAction("Poop Sweeper")
         # This will do something eventually
+        poopSweeper.triggered.connect(self.setPoop)
 
         #-------------------------------------------------------------------------------------------
         # INIT
@@ -203,9 +208,15 @@ class MainWindow(QMainWindow):
             Outputs:    None
         """
         # Create a game
-        game = GameDialog(configuration, self.playerName)
+        game = GameDialog(configuration, self.playerName, self.__database)
         # Execute the game
         game.exec()
+
+####################################################################################################
+
+    def setPoop(self):
+
+        pass
 
 ####################################################################################################
 

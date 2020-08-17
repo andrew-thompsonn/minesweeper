@@ -188,6 +188,15 @@ class ComputerPlayer(Player):
             Outputs:    coordinates (<int>, <int>)
                         probability <int>
         """
+
+        if gameState.flags == 0:
+            inivisbleBricks = []
+            for coord in gameState.bricks:
+                if not gameState.bricks[coord].visible:
+                    invisibleBricks.append(coord)
+
+            return invisibleBricks[0], 1
+
         # Dictionary containing coordinates and probability of mine
         mineProbabilities = {}
         # Get list of visible bricks
