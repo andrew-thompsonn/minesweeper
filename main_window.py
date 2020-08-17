@@ -79,7 +79,7 @@ class MainWindow(QMainWindow):
         # Theme menu
         aboutMenu = menuBar.addMenu("About")
         # Edit/preferences - will be able to change color theme
-        aboutAction = themeMenu.addAction("About")
+        aboutAction = aboutMenu.addAction("About")
         # This will do something eventually
         aboutAction.triggered.connect(self.openWeb)
 
@@ -215,8 +215,9 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def openWeb(self):
-        self.setOpenExtrnalLinks(True)
-        pass
+        #self.setOpenExtrnalLinks(True)
+        QDesktopServices.openUrl(QUrl("http://0.0.0.0:8080/"))
+
 
 ####################################################################################################
 

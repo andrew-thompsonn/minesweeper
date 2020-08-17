@@ -566,24 +566,28 @@ class Engine(QObject):
         # Get rounded version of gametime
         gameTime = round(self.gameTime, 3)
 
+        # If singleplayer configuration
         if self.configuration == 1:
             # If singleplayer previously saved game
             if self.loadGameID != 0:
                 # Overwrite old save
                 self.gameDatabase.insertSave(gameState, gameTime, player, self.loadGameID, None)
+            # If not a previously saved game
             else:
+                # Insert a new save
                 self.gameDatabase.insertSave(gameState, gameTime, player, None, None)
+        # If multiplayer configuration
         elif self.configuration == 2:
-            # If current game was loaded
+            # If player game was loaded
             if self.loadGameID != 0 and player.isHuman:
                 # Overwrite previous save state
                 print("Overwriting {} previous save state...".format(player.name))
                 self.gameDatabase.insertSave(gameState, gameTime, player, self.loadGameID, multiplayerFlag)
+            # If computer game was loaded
             elif self.computerLoadGameID != 0 and not player.isHuman:
                 # Overwrite previous save state
                 print("Overwriting {} previous save state...".format(player.name))
                 self.gameDatabase.insertSave(gameState, gameTime, player, self.computerLoadGameID, multiplayerFlag)
-
             # Otherwise,
             else:
                 # Save the game to the database as a new game
