@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QWidget, QMessageBox
-from PyQt5.QtGui import  QImage, QPalette, QBrush, QIcon,  QMovie, QPainter, QPixmap
-from PyQt5.QtCore import QSize
+from PyQt5.QtGui import  QImage, QPalette, QBrush, QIcon,  QMovie, QPainter, QPixmap, QDesktopServices
+from PyQt5.QtCore import QSize, QUrl
 
 import sys
 import os
@@ -77,11 +77,11 @@ class MainWindow(QMainWindow):
         quitAction.setShortcut("CTRL+Q")
 
         # Theme menu
-        themeMenu = menuBar.addMenu("Themes")
+        aboutMenu = menuBar.addMenu("About")
         # Edit/preferences - will be able to change color theme
-        poopSweeper = themeMenu.addAction("Poop Sweeper")
+        aboutAction = themeMenu.addAction("About")
         # This will do something eventually
-        poopSweeper.triggered.connect(self.setPoop)
+        aboutAction.triggered.connect(self.openWeb)
 
         #-------------------------------------------------------------------------------------------
         # INIT
@@ -214,8 +214,8 @@ class MainWindow(QMainWindow):
 
 ####################################################################################################
 
-    def setPoop(self):
-
+    def openWeb(self):
+        self.setOpenExtrnalLinks(True)
         pass
 
 ####################################################################################################
