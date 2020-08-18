@@ -36,18 +36,20 @@ class PsqlDatabase:
             Outputs:    None
         """
         try:
+            # Set the path
             self.path = os.path.dirname(os.path.abspath(__file__))
-
             # Create a connection to the database
             self.cxn = psql.connect(
                 host=self.host, database=self.database, port = self.port, user=self.user, password=self.password)
-
             # Create a cursor from the database connection
             self.cursor = self.cxn.cursor()
-
+        # Except a psql error (error in connecting )
         except psql.Error as error:
+            # Create error message
             errorMessage = "Error connecting to database. " + str(error)
+            # Print error message
             print(errorMessage)
+            # Raise a PsqlDatabaseError
             raise PsqlDatabaseError(errorMessage)
 
 ####################################################################################################
@@ -207,7 +209,8 @@ class PsqlDatabase:
 ####################################################################################################
 
     def insertSave(self, gameState, time, player, loadGameID=None, multiPlayerFlag=None):
-        """ Insert game data as a new save_state in the database.
+        """ Insert game data as a new save_state in the database. If previously saved, use the old
+            gameID, and update the information in the game_info table.
 
             Inputs:     gameState <GameState>
                         time <float>
@@ -215,7 +218,6 @@ class PsqlDatabase:
                         loadGameID <int>
             Outputs:    None
         """
-        print("Inserting save, multiplayer flag: {}".format(multiPlayerFlag))
 
         # If game was not loaded
         if loadGameID == None:
@@ -232,7 +234,6 @@ class PsqlDatabase:
 
         # If game was loaded
         else:
-            print("Overwrote saveState******************")
             # Use the loaded game id
             gameID = loadGameID
             # Delete the old save_state entry
@@ -241,7 +242,6 @@ class PsqlDatabase:
             self.cursor.execute("DELETE FROM game_info where gameID = {};".format(gameID))
             # If a multiplayer game
             if multiPlayerFlag != None:
-                print("Overwrote previous save for {}".format(player.name))
                 # Insert with multiplayer flag
                 self.insertGame(gameState, player, time, gameID, multiPlayerFlag)
             # If singleplayer
@@ -271,8 +271,6 @@ class PsqlDatabase:
             flagArrayString = 'NULL'
         # Otherwise, get a postgres array string for flag locations
         else: flagArrayString = self.createArrayString(gameState.flagCoords)
-
-        print(flagArrayString)
 
         # Insert statement
         insertString = "INSERT INTO save_state (saveid, size, visible_bricks, mine_locations, flag_locations, gameID, datetime ) "
@@ -385,10 +383,12 @@ class PsqlDatabase:
             Outputs:    None
         """
 
+        # If multiplayer game
         if multiplayerFlag:
+            # Query for the game it was played against
             self.cursor.execute("Select played_against from game_info where gameid = {};".format(gameID))
+            # Get played against gameID
             playedAgainst = int(self.cursor.fetchone()[0])
-
 
         # Deleter the save info
         self.cursor.execute("Delete from save_state where gameID = {};".format(gameID))
@@ -398,7 +398,7 @@ class PsqlDatabase:
         # Get the old game time
         oldTime = float(self.cursor.fetchone()[0])
         # Add to new game time
-        newTime = oldTime + time
+        newTime = round(oldTime + time, 3)
         # Delete the game info
         self.cursor.execute("Delete from game_info where gameID = {};".format(gameID))
         self.commit()
@@ -457,7 +457,7 @@ class PsqlDatabase:
         mediumData = self.getScores(True, difficulties[1])
         # Get hard names and times
         hardData = self.getScores(True, difficulties[2])
-
+        # Return all score data
         return easyData, mediumData, hardData
 
 ####################################################################################################
@@ -478,7 +478,7 @@ class PsqlDatabase:
         mediumData = self.getScores(False, difficulties[1])
         # Hard names and times
         hardData = self.getScores(False, difficulties[2])
-
+        # Return all score data
         return easyData, mediumData, hardData
 
 ####################################################################################################

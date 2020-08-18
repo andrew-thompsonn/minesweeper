@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from engine import Engine
+from graphics.engine import Engine
 from graphics.lose_dialog import LoseDialog
 from graphics.win_dialog import WinDialog
 
@@ -114,10 +114,15 @@ class GameDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # Set title base on configuration
         if self.config == 1:
+            # singleplayer title
             titleLabel = QLabel("Singleplayer")
+        # If multiplayer selected
         elif self.config == 2:
+            # Multiplayer title
             titleLabel = QLabel("Multiplayer")
+        # If watch selected
         else:
+            # Watch title
             titleLabel = QLabel("Watch")
         titleLabel.setFont(QFont('Ariel', 20))
         titleLabel.setStyleSheet("Color:black;")
@@ -241,6 +246,7 @@ class GameDialog(QDialog):
         if self.config == 3:
             # Connect the AI to the start button
             startButton.clicked.connect(self.startTime)
+            # Connect the start button to the timer
             startButton.clicked.connect(self.engine.runAIOnly)
         # If multiplayer
         if self.config == 2:
@@ -285,7 +291,7 @@ class GameDialog(QDialog):
             # Concatenate time string
             self.timeString = str(self.minutes)+":"+secondsStr
             # Change timer text
-            self.gameTime.setText("Time:    "+self.timeString)
+            self.gameTime.setText("Time: "+self.timeString)
 
 ####################################################################################################
 
@@ -295,7 +301,14 @@ class GameDialog(QDialog):
             Inputs:     Info <list>
             Outputs:    None
         """
+        # TODO: Figure out way to sync dialog timer with engine gametime***************************
+        # Get a new time in the format of the dialog timer
+        dialogTime = self.engine.convertTime(round(self.engine.gameTime))
+        # Set the dialog timer
+        self.gameTime.setText("Time: "+dialogTime)
+        # Get a more precise time for the win dialog
         time = info[0]
+        # Get the name of the winner
         name = info[1]
         # If configuration is singleplayer
         if self.config == 1:
@@ -328,7 +341,13 @@ class GameDialog(QDialog):
             Inputs:     Info <list>
             Outputs:    None
         """
+        # Get a new time in the format of the dialog timer
+        dialogTime = self.engine.convertTime(round(self.engine.gameTime))
+        # Set the dialog timer
+        self.gameTime.setText("Time: "+dialogTime)
+        # Get a more precise time from the information passed from the engine
         time = info[0]
+        # Get the name of the loser
         name = info[1]
         # If configuration is singleplayer
         if self.config == 1:
@@ -364,7 +383,6 @@ class GameDialog(QDialog):
         # Connecting the save button to the engines method for saving games
         self.engine.saveSingleGame()
         self.close()
-
 
 ####################################################################################################
 

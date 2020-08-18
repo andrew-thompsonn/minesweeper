@@ -13,13 +13,15 @@ class MultiPlayerOptions(QDialog):
 
 ####################################################################################################
 
-    def __init__(self, names, *args, **kwargs):
+    def __init__(self, database, *args, **kwargs):
         # Initialize parent class
         super().__init__(*args, **kwargs)
         # Set window geometry
         self.setFixedSize(420, 200)
+        # Get database
+        self.__database = database
         # Get all names in database
-        self.names = names
+        self.names = self.__database.selectNames()
         # Set exit code to 1
         self._exitCode = 1
         # Multiplayer configuration code is 2

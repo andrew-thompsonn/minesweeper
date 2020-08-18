@@ -14,13 +14,15 @@ class SinglePlayerOptions(QDialog):
 
 ####################################################################################################
 
-    def __init__(self, names, *args, **kwargs):
+    def __init__(self, database, *args, **kwargs):
         # Initialize parent class
         super().__init__(*args, **kwargs)
         # Set default geometry
         self.setFixedSize(315, 200)
+        # Get database
+        self.__database = database
         # Get all names in the database
-        self.names = names
+        self.names = self.__database.selectNames()
         # Set exit code to 1
         self._exitCode = 1
         # Single player configuration code is 1

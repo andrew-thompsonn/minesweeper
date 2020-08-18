@@ -7,13 +7,15 @@ from PyQt5.QtCore import QSize, QUrl
 import sys
 import os
 
-from game_dialog import GameDialog
+# Graphics
+from graphics.game_dialog import GameDialog
 from graphics.multi_player_options import MultiPlayerOptions
 from graphics.single_player_options import SinglePlayerOptions
 from graphics.start_screen import StartScreen
 from graphics.watch_options import WatchOptions
 from graphics.load_game_options import LoadGameOptions
 
+# Database
 from web.postgreSQL.psql_database import PsqlDatabase, PsqlDatabaseError
 
 ####################################################################################################
@@ -21,11 +23,8 @@ from web.postgreSQL.psql_database import PsqlDatabase, PsqlDatabaseError
 class MainWindow(QMainWindow):
     """ Class for the main window of the application. """
 
-
-    # Create hyperlink to web address
+    # Link to home page of website
     """  http://0.0.0.0:8080/  """
-
-    # Pass database into dialog and engine
 
 ####################################################################################################
     def __init__(self, *args, **kwargs):
@@ -52,8 +51,6 @@ class MainWindow(QMainWindow):
             criticalErrorDialog = QMessageBox.critical(self,'Database Error',str(error)+refString, QMessageBox.Ok)
             # Exit the application
             self.quit(1)
-        # Get list of player names in database
-        self.names = self.__database.selectNames()
 
         #-------------------------------------------------------------------------------------------
         # MENU BAR
@@ -84,7 +81,7 @@ class MainWindow(QMainWindow):
         aboutAction.triggered.connect(self.openWeb)
 
         #-------------------------------------------------------------------------------------------
-        # INIT
+        # INITIALIZATION
         #-------------------------------------------------------------------------------------------
         # Start screen
         startScreen = StartScreen()
@@ -143,7 +140,7 @@ class MainWindow(QMainWindow):
             Outputs:    None
         """
         # Single player option dialog
-        singleDialog = SinglePlayerOptions(self.names)
+        singleDialog = SinglePlayerOptions(self.__database)
         # Execute the dialog and get a response
         response = singleDialog.exec()
         # If the dialog was accepted
@@ -165,7 +162,7 @@ class MainWindow(QMainWindow):
             Outputs:    None
         """
         # Multi player option dialog
-        multiDialog = MultiPlayerOptions(self.names)
+        multiDialog = MultiPlayerOptions(self.__database)
         # Execute dialog and get a response
         response = multiDialog.exec()
         # If the dialog was accepted
@@ -186,7 +183,7 @@ class MainWindow(QMainWindow):
             Outputs:    None
         """
         # Load game options dialog
-        loadDialog = LoadGameOptions( self.__database, self.names)
+        loadDialog = LoadGameOptions(self.__database)
         # Execute dialog box and get response
         response = loadDialog.exec()
         # If dialog was accepted
@@ -201,8 +198,7 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def createGame(self, configuration):
-        """ Executes a dialog based off the selected
-            configuration
+        """ Executes a dialog based off the selected configuration
 
             Inputs:     configuration <list>
             Outputs:    None
@@ -215,7 +211,12 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def openWeb(self):
-        #self.setOpenExtrnalLinks(True)
+        """ Opens the application's web component
+
+            Inputs:     None
+            Outputs:    None
+        """
+        # Open the url for game website
         QDesktopServices.openUrl(QUrl("http://0.0.0.0:8080/"))
 
 

@@ -184,24 +184,36 @@ class ComputerPlayer(Player):
         """ Calculate the probability of all unclicked bricks as being mines. Only calculates for
             bricks that are touching visible numbers
 
+            Currently the computer's probabilistic guesses are correct 80% of the time
+
             Inputs:     gameState <GameState>
             Outputs:    coordinates (<int>, <int>)
                         probability <int>
         """
 
         if gameState.flags == 0:
-            inivisbleBricks = []
+            invisbleBricks = []
             for coord in gameState.bricks:
                 if not gameState.bricks[coord].visible:
                     invisibleBricks.append(coord)
-
+            print("In end game exception 0...")
+            print("Returning {}".format(invisibleBricks[0]))
             return invisibleBricks[0], 1
 
+        #-------------------------------------------------------------------------------------------
+        # Initialization
+        #-------------------------------------------------------------------------------------------
+        # Dictionary containing a question brick as the key, and mine candidates for that
+        # Question brick as the value
+        brickCandidates = {}
         # Dictionary containing coordinates and probability of mine
         mineProbabilities = {}
         # Get list of visible bricks
         visibleBricks, allBricks = self.seeBoard(gameState)
 
+        #-------------------------------------------------------------------------------------------
+        # Get mine candidates
+        #-------------------------------------------------------------------------------------------
         # For brick that reveals no info
         for brick in self.questionBricks:
             # Get all surrounding coordinates
@@ -216,6 +228,12 @@ class ComputerPlayer(Player):
                     # Append to mine candidates
                     mineCandidates.append(coordinate)
 
+            # Fill dictionary for current brick with all the mine candidates it is touching
+            brickCandidates[brick] = mineCandidates
+
+            #---------------------------------------------------------------------------------------
+            # Get probability based on current brick
+            #---------------------------------------------------------------------------------------
             # Number of invisible bricks our current brick is touching
             touchingBricks = len(mineCandidates)
             # Get number of flags the brick is touching
@@ -223,6 +241,9 @@ class ComputerPlayer(Player):
             # Probability of mine is (mines touching / bricks touching)
             mineProbability = (brick.touching - flagCount)/touchingBricks
 
+            #---------------------------------------------------------------------------------------
+            # Deal with multiple bricks touching the same mine candidate
+            #---------------------------------------------------------------------------------------
             # List containing duplicate mine candidates
             mineMultiples = []
             # For every coordinate in mine candidates
@@ -241,12 +262,27 @@ class ComputerPlayer(Player):
                     # Add to dictionary
                     mineProbabilities[candidate] = mineProbability
 
-        # Get the minimum probability
-        minValue = min(mineProbabilities.values())
-        # Get list of bricks with minimum probability (could be multiple)
-        minKeys = [k for k, v in mineProbabilities.items() if v == minValue]
-        # Return the coordinates and probability
-        return minKeys[0], minValue
+        #---------------------------------------------------------------------------------------
+        # Get the minimum probability to return
+        #---------------------------------------------------------------------------------------
+        try:
+            # Get the minimum probability
+            minValue = min(mineProbabilities.values())
+            # Get list of bricks with minimum probability (could be multiple)
+            minKeys = [k for k, v in mineProbabilities.items() if v == minValue]
+            # Return the coordinates and probability
+            return minKeys[0], minValue
+
+
+        except Exception as error:
+            if gameState.flags == 0:
+                invisbleBricks = []
+                print("In end game exception 1...")
+                for coord in gameState.bricks:
+                    if not gameState.bricks[coord].visible:
+                        invisibleBricks.append(coord)
+                print("Returning {}".format(invisibleBricks[0]))
+                return invisibleBricks[0], 1
 
 
 ####################################################################################################

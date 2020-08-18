@@ -11,7 +11,7 @@ class LoadGameOptions(QDialog):
 
 ####################################################################################################
 
-    def __init__(self, database, names,  *args, **kwargs):
+    def __init__(self, database, *args, **kwargs):
         # Initialize parent class
         super().__init__(*args, **kwargs)
         # Set geometry
@@ -19,7 +19,7 @@ class LoadGameOptions(QDialog):
         # Get the database
         self.__database = database
         # Get all names in database
-        self.names = names
+        self.names = self.__database.selectNames()
         # Set exit code to 1
         self._exitCode = 1
 

@@ -271,6 +271,7 @@ class GameState():
         if self.bricks[coordinate].mine == True:
             # Lose game
             self.loseGame()
+            return 0
 
         # Check for win
         self.checkWin()
@@ -416,9 +417,9 @@ class GameState():
             Outputs:    None
         """
         # For all bricks
-        for coord in self.bricks:
-            # Set visibility to True
-            self.bricks[coord].setVisibility(True)
+        # for coord in self.bricks:
+        #     # Set visibility to True
+        #     self.bricks[coord].setVisibility(True)
         # Set status of game as lost
         self.status = 2
 
@@ -426,10 +427,11 @@ class GameState():
 
     def printBoard(self):
         """ Function to print ASCII version of game """
-        #system('clear')
+        # 'Clear' terminal 
         print("\n"*10)
         # Print y axis
         for yIndex in range(self.sizeY):
+            # Print y axis
             print(" {}  ".format(yIndex), end = "")
         # Spacing
         print("\n\n")

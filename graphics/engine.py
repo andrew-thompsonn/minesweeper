@@ -15,9 +15,6 @@ from graphics.player_board import PlayerBoard
 from PyQt5.QtCore import QObject, pyqtSignal, QThread, QTimer
 from PyQt5.QtWidgets import QApplication
 
-# Database
-from web.postgreSQL.psql_database import PsqlDatabase
-
 ####################################################################################################
 
 class Engine(QObject):
@@ -79,7 +76,6 @@ class Engine(QObject):
             self.playerBoard.changeMany(self.playerGameState)
             # Loaded game ID
             self.loadGameID = playerLoad[3]
-            print("Loaded gameID: {}".format(self.loadGameID))
 
         # Default loadGameID to invalid value
         self.computerLoadGameID = 0
@@ -91,7 +87,6 @@ class Engine(QObject):
             self.computerBoard.changeMany(self.computerGameState)
             # Loaded gameID
             self.computerLoadGameID = computerLoad[3]
-            print("Loaded Computer gameID: {}".format(self.computerLoadGameID))
 
         # If configuration is single or multiplayer
         if config == 1 or config == 2:
@@ -374,6 +369,8 @@ class Engine(QObject):
         elif gameState.status == 2:
             # Change many bricks in board
             self.computerBoard.changeMany(self.computerGameState)
+            # Show the losing brick
+            self.computerBoard.lose(coordinate)
             # Get time at end of game
             self.endTime = time.time()
             # Document player as winning (Only matters if multiplayer enabled )
@@ -431,6 +428,8 @@ class Engine(QObject):
         elif self.playerGameState.status == 2:
             # Change many bricks in board
             self.playerBoard.changeMany(self.playerGameState)
+            # Change the brick that lost the game
+            self.playerBoard.lose(coordinates)
             # Get time at end of game
             self.endTime = time.time()
             # Document computer as winning (only matters if multiplayer enabled)
@@ -515,18 +514,27 @@ class Engine(QObject):
                         player    <Player>
             Outputs:    None
         """
+        print("Computer game status: {}".format(self.computerGameState.status))
+        print("Player game status: {}".format(self.playerGameState.status))
         # Get time value
         time = round(self.gameTime, 3)
+        # Initialize multiplayer as false
         multiplayerFlag = False
+        # If multiplayer
         if self.configuration == 2:
+            # Set flag to true
             multiplayerFlag = True
         # If there was a loaded game
         if self.loadGameID != 0:
-            # Update the database to finish a loaded game
+            # If multiplayer game
             if self.configuration == 2:
+                # Finish player game
                 self.gameDatabase.finishSavedGame(gameState, self.player, self.loadGameID, time, multiplayerFlag)
+                # Finish computer game
                 self.gameDatabase.finishSavedGame(self.computerGameState, self.computerPlayer, self.computerLoadGameID, time, multiplayerFlag)
+            # Otherwise,
             else:
+                # Finish the game
                 self.gameDatabase.finishSavedGame(gameState, self.player, self.loadGameID, time)
         # If multiplayer is enabled
         elif self.configuration == 2:
@@ -614,6 +622,7 @@ class Engine(QObject):
         self.saveGame(gameState, player)
 
 ####################################################################################################
+
     def saveMultipleGames(self):
         """ Inserts multiplayer games in progress that the user saves into the database
 
@@ -654,8 +663,9 @@ class Engine(QObject):
         player = self.player
         # Get computer player
         computer = self.computerPlayer
-        # Save games
+        # Save computer game
         self.saveGame(computerGameState, computer, compAgainstID)
+        # Save player game
         self.saveGame(playerGameState, player, playerAgainstID)
 
 ####################################################################################################
