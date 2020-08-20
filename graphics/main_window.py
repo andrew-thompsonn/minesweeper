@@ -10,12 +10,14 @@ import sys
 import os
 
 # Graphics
+from graphics.rules_dialog import RulesDialog
 from graphics.game_dialog import GameDialog
 from graphics.multi_player_options import MultiPlayerOptions
 from graphics.single_player_options import SinglePlayerOptions
 from graphics.start_screen import StartScreen
 from graphics.watch_options import WatchOptions
 from graphics.load_game_options import LoadGameOptions
+
 
 # Database
 from web.postgreSQL.psql_database import PsqlDatabase, PsqlDatabaseError
@@ -75,12 +77,16 @@ class MainWindow(QMainWindow):
         # Standard shortcut
         quitAction.setShortcut("CTRL+Q")
 
-        # Theme menu
-        aboutMenu = menuBar.addMenu("About")
-        # Edit/preferences - will be able to change color theme
-        aboutAction = aboutMenu.addAction("About")
-        # This will do something eventually
+        # About menu
+        helpMenu = menuBar.addMenu("Help")
+        # Add about action
+        aboutAction = helpMenu.addAction("About")
+        #  link to open the website
         aboutAction.triggered.connect(self.openWeb)
+        # Add Rules action
+        rulesAction = helpMenu.addAction("Rules")
+        # Connect rules to rules dialog
+        rulesAction.triggered.connect(self.openRules)
 
         #-------------------------------------------------------------------------------------------
         # INITIALIZATION
@@ -180,7 +186,7 @@ class MainWindow(QMainWindow):
 
     def loadGameOptions(self):
         """ Displays the options for loading a previously save game. stores the configuration
-            of the loaded game. 
+            of the loaded game.
 
             Inputs:     None
             Outputs:    None
@@ -210,6 +216,12 @@ class MainWindow(QMainWindow):
         game = GameDialog(configuration, self.playerName, self.__database)
         # Execute the game
         game.exec()
+
+####################################################################################################
+
+    def openRules(self):
+        rulesDialog = RulesDialog()
+        rulesDialog.exec()
 
 ####################################################################################################
 
