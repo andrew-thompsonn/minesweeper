@@ -6,6 +6,8 @@ CherryPy==18.6.0
 pymongo==3.10.0
 Jinja2==2.11.2
 psycopg2==2.8.5
+PyQt5
+
 Docker installation instructions below
 
 ----------------------------------------------------------------------------------------------------

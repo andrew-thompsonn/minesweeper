@@ -184,22 +184,14 @@ class ComputerPlayer(Player):
         """ Calculate the probability of all unclicked bricks as being mines. Only calculates for
             bricks that are touching visible numbers
 
-            Currently the computer's probabilistic guesses are correct 80% of the time
+            Currently the computer's probabilistic guesses are correct 80.7% of the time
+            This function is not optimized, and the calculated probabilities have an uncertainty
+            of +/- 7%.
 
             Inputs:     gameState <GameState>
             Outputs:    coordinates (<int>, <int>)
                         probability <int>
         """
-
-        if gameState.flags == 0:
-            invisbleBricks = []
-            for coord in gameState.bricks:
-                if not gameState.bricks[coord].visible:
-                    invisibleBricks.append(coord)
-            print("In end game exception 0...")
-            print("Returning {}".format(invisibleBricks[0]))
-            return invisibleBricks[0], 1
-
         #-------------------------------------------------------------------------------------------
         # Initialization
         #-------------------------------------------------------------------------------------------
@@ -255,12 +247,48 @@ class ComputerPlayer(Player):
                     # Count the number of times it has appeared
                     occurences = mineMultiples.count(candidate)
                     # Calculate the weighted probability
-                    combinedProbability = (((occurences-1)*mineProbabilities[candidate])+mineProbability)/2
+                    combinedProbability = (((occurences)*mineProbabilities[candidate])+mineProbability)/2
                     # Add weighted probability to dictionary
                     mineProbabilities[candidate] = combinedProbability
                 else:
                     # Add to dictionary
                     mineProbabilities[candidate] = mineProbability
+
+            #---------------------------------------------------------------------------------------
+            # Change probabilities of candidates that are effected by more than one brick
+            #---------------------------------------------------------------------------------------
+            # Initialize a list of probabilities
+            probList = []
+            # For coordinates in the brick's candidate mine list
+            for coordinates in brickCandidates[brick]:
+                # Append the probability
+                probList.append(mineProbabilities[coordinates])
+            # Get the difference between what the probability sum should be and the value
+            delta = allBricks[candidate].touching - sum(probList)
+            # If the difference is greater than 1/10
+            if delta > 0.1:
+                # Get the minimum probability in the list
+                minimum = min(probList)
+                # Initialize a list of probabilities that need to change
+                incorrectProbs = []
+                # For coordinates in the brick's candidate mine list
+                for candidateCoords in brickCandidates[brick]:
+                    # If probability is not the minimum
+                    if mineProbabilities[candidateCoords] != minimum:
+                        # Add the coordinates to the list
+                        incorrectProbs.append(candidateCoords)
+                # The correct sum for incorrect probabilities
+                correctBrickProbSum = (len(brickCandidates[brick]) - len(incorrectProbs)) * minimum
+                # The desired sum
+                desiredSum = allBricks[candidate].touching - correctBrickProbSum
+                # Determine a scaling factor
+                scaleFactor = desiredSum / correctBrickProbSum
+                # For all bricks that need probability to be scaled
+                for candidateCoords in incorrectProbs:
+                    # Check to make sure probability is too low
+                    if mineProbabilities[candidateCoords] in incorrectProbs:
+                        # Scale the probability by the scale factor
+                        mineProbabilities[candidate] *= scaleFactor
 
         #---------------------------------------------------------------------------------------
         # Get the minimum probability to return
@@ -272,18 +300,14 @@ class ComputerPlayer(Player):
             minKeys = [k for k, v in mineProbabilities.items() if v == minValue]
             # Return the coordinates and probability
             return minKeys[0], minValue
-
-
-        except Exception as error:
-            if gameState.flags == 0:
-                invisbleBricks = []
-                print("In end game exception 1...")
-                for coord in gameState.bricks:
-                    if not gameState.bricks[coord].visible:
-                        invisibleBricks.append(coord)
-                print("Returning {}".format(invisibleBricks[0]))
-                return invisibleBricks[0], 1
-
+        # If no minumum value
+        except ValueError as error:
+            # Get a random move
+            coordinates = self.first()
+            # Random probability
+            probability = "RANDOM"
+            # Return coordinates and probability
+            return coordinates, probability
 
 ####################################################################################################
 
@@ -321,7 +345,6 @@ class ComputerPlayer(Player):
         # Coordinates to check for any brick not on the edge of the board
         checkAll = [(xIndex, yIndex-1) ,(xIndex,yIndex+1), (xIndex-1,yIndex), (xIndex+1,yIndex),
                     (xIndex-1,yIndex-1),(xIndex-1,yIndex+1),(xIndex+1,yIndex-1),(xIndex+1,yIndex+1)]
-
 
         # Upper coordinates
         checkTop = [(xIndex-1,yIndex-1),(xIndex-1,yIndex),(xIndex-1,yIndex+1)]

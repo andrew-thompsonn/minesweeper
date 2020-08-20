@@ -73,7 +73,7 @@ class GameState():
 
     def createBoard(self, sizeX, sizeY):
         """ Create a dictionary containing a brick's coordinates as the key, and the brick as
-            the value
+            the value. Coordinates correspond to the correct sized board (sizeX by sizeY)
 
             Inputs:     sizeX <int>
                         sizeY <int>
@@ -100,7 +100,8 @@ class GameState():
 
     def fillMines(self, sizeX, sizeY, mines, coord):
         """ Based on number of mines and size, picks random coordinates to place mines, and activates
-            bricks as mines at those coordinates
+            bricks as mines at those coordinates. Will not place mines on the first move of the
+            player, or in any of the squares immediately surrounding the first move.
 
             Inputs:     sizeX <int>
                         sizeY <int>
@@ -129,7 +130,7 @@ class GameState():
 ####################################################################################################
 
     def fillTouchingCounts(self):
-        """ Get the number of mines every brick is touching, and assign the bricks touchign count
+        """ Get the number of mines every brick is touching, and assign the bricks touching count.
 
             Inputs:     None
             Outputs:    None
@@ -214,7 +215,7 @@ class GameState():
 
     def getTouchingCount(self, checklist):
         """ Get the number of mines a brick is touching. Will check any list of coordinates
-            surrounding a brick and count the number of mines touching
+            surrounding and count the number of mines touching
 
             Inputs:     checklist [(<int>, <int>)]
             Outputs:    count <int>
@@ -254,11 +255,11 @@ class GameState():
         # Otherwise click one brick
         else: self.clickBrick(coordinate)
 
-
 ####################################################################################################
 
     def clickBrick(self, coordinate):
-        """ Left click a brick. Checks for a win or loss.
+        """ Left click a brick. Sets the brick's at the input coordinate to visible, appends the
+            coordinate to the list of visible bricks, and checks for a win or loss.
 
             Inputs:     coordinate (<int>, <int>)
             Outputs:    None
@@ -271,8 +272,8 @@ class GameState():
         if self.bricks[coordinate].mine == True:
             # Lose game
             self.loseGame()
+            # Exit method
             return 0
-
         # Check for win
         self.checkWin()
 
@@ -280,7 +281,8 @@ class GameState():
 
     def clickMany(self, coordinate):
         """ Clicks several bricks. Called when an empty brick is clicked that is touching no mines.
-            If a brick is empty, checks for all near by empty bricks and clicks them as well
+            If a brick is empty, checks for all near by empty bricks and clicks them as well.
+            Continually checks surrounding bricks for being empty.
 
             Inputs:     coordinate (<int>, <int>)
             Outputs:    None
@@ -333,7 +335,7 @@ class GameState():
 ####################################################################################################
 
     def flagBrick(self, coordinates):
-        """ Flags a brick and updates flag count. Checks for win.
+        """ Flags a brick and updates flag count and flag coordinate list. Checks for win.
 
             Inputs:     coordinates (<int>, <int>)
             Outputs     None
@@ -358,7 +360,8 @@ class GameState():
 ####################################################################################################
 
     def checkWin(self):
-        """ Checks for win by counting correct flags and number of visible bricks
+        """ Checks for win by counting correct flags and number of visible bricks and comparing
+            to a gamestate where all non mines have been clicked
 
             Inputs:     None
             Outputs:    None
@@ -389,7 +392,8 @@ class GameState():
 ####################################################################################################
 
     def win(self):
-        """ Update game status to reflect a win, and show the whole board
+        """ Update game status to reflect a win, and show the whole board. If some mines are
+            unflagged, will flag the brick. Update status to reflect a win
 
             Inputs:     None
             Outputs:    None
@@ -426,8 +430,12 @@ class GameState():
 ####################################################################################################
 
     def printBoard(self):
-        """ Function to print ASCII version of game """
-        # 'Clear' terminal 
+        """ Function to print ASCII version of game.
+
+            Inputs:     None
+            Outputs:    None 
+        """
+        # 'Clear' terminal
         print("\n"*10)
         # Print y axis
         for yIndex in range(self.sizeY):

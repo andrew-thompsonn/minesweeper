@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+# Pyqt5
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QWidget, QMessageBox
 from PyQt5.QtGui import  QImage, QPalette, QBrush, QIcon,  QMovie, QPainter, QPixmap, QDesktopServices
 from PyQt5.QtCore import QSize, QUrl
 
+# System
 import sys
 import os
 
@@ -177,7 +179,8 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def loadGameOptions(self):
-        """ Displays the options for loading a previously save game.
+        """ Displays the options for loading a previously save game. stores the configuration
+            of the loaded game. 
 
             Inputs:     None
             Outputs:    None
@@ -198,7 +201,7 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def createGame(self, configuration):
-        """ Executes a dialog based off the selected configuration
+        """ Executes a game dialog based off the selected configuration
 
             Inputs:     configuration <list>
             Outputs:    None
@@ -219,7 +222,6 @@ class MainWindow(QMainWindow):
         # Open the url for game website
         QDesktopServices.openUrl(QUrl("http://0.0.0.0:8080/"))
 
-
 ####################################################################################################
 
     def quit(self, returnCode):
@@ -233,7 +235,7 @@ class MainWindow(QMainWindow):
 ####################################################################################################
 
     def paintEvent(self, event):
-        """ Function to allow for continuous background animation
+        """ Method to allow for continuous background animation
 
             Inputs:     event <event>
             Outputs:    None

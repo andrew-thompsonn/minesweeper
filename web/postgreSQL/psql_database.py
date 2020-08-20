@@ -141,6 +141,7 @@ class PsqlDatabase:
         minesLeft = gameState.flags
         # Get status of game (in progress, lost, won)
         status = gameState.status
+        print(player.name, status)
         # Get win
         if status == 1:
             # Gamestate status of 1 indicates win
@@ -382,7 +383,7 @@ class PsqlDatabase:
                         time <float>
             Outputs:    None
         """
-
+        print("In finishedSavedGame() player: {} status {}".format(player.name, gameState.status))
         # If multiplayer game
         if multiplayerFlag:
             # Query for the game it was played against
@@ -522,6 +523,7 @@ class PsqlDatabase:
         self.cursor.execute("select name, game_time, difficulty, gameid from game_info inner join player_info on game_info.playerid = player_info.playerid where win = True and played_against is not null;")
         # Get results from query
         winners = self.cursor.fetchall()
+        print(winners)
         # Initialize a list of losers
         losers = []
         # For every multiplayer winner
@@ -532,6 +534,7 @@ class PsqlDatabase:
             self.cursor.execute("select name, difficulty from game_info inner join player_info on game_info.playerid = player_info.playerid where win = False and played_against = {};".format(gameID))
             # Execute Query
             loser = self.cursor.fetchone()
+            print(loser)
             # Add loser information to losers list
             losers.append(loser)
         # Initialize a list of data representing multiplayer games

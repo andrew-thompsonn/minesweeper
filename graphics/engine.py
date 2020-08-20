@@ -19,7 +19,8 @@ from PyQt5.QtWidgets import QApplication
 
 class Engine(QObject):
     """ A class to connect and manage signals between player/computer graphics, and insert the
-        player's and computer's actions into their respective game states
+        player's and computer's actions into their respective game states. Inserts game saves,
+        finished games, and player information into the database.
     """
     # Signal for number of flags
     playerFlagNumberChanged = pyqtSignal(int)
@@ -40,6 +41,10 @@ class Engine(QObject):
             Inputs:     config <int>
                         difficulties [<int>]
                         computerSkill [<int>]
+                        playerName <string>
+                        playerLoad <int>
+                        computerLoad <int>
+                        database <PsqlDatabase>
             Outputs:    None
         """
         # Initialize parent class
@@ -98,13 +103,13 @@ class Engine(QObject):
     def initPlayer(self, playerDifficulty, playerName, config):
         """ Initialize all aspects of a human player, including board, new gamestate, and player
             profile. If player doesn't already exist in database add to database. Run and
-            initialize player graphics
+            initialize player graphics.
 
             Inputs:     playerDifficulty <int>
                         playerName <str>
+                        config <int>
             Outputs:    None
         """
-
         # If watch AI only is enabled
         if config == 3:
             # Initialize a default player game state
@@ -131,11 +136,12 @@ class Engine(QObject):
 
     def initComputer(self, computerDifficulty, computerSkill, config):
         """ Initialize all aspects of a computer player, including board, new gamestate, and
-            computer player. Always uses an existing computer player. Computer player profiles
-            are already in the database.
+            computer player. If computer doesn't already exist in database add to database. Run and
+            initialize computer graphics.
 
             Inputs:     computerDifficulty <int>
                         computerSkill      <int>
+                        config <int>
             Outputs:    None
         """
 
@@ -175,7 +181,8 @@ class Engine(QObject):
     def getAIMove(self):
         """ Get moves from computer based on the current game state, and add them to a queue.
             When called, commit a single move from the queue, and if the queues are empty, call the
-            computer to produce more moves
+            computer to produce more moves. If the computer cannot make a logical move, request a
+            random one.
 
             Inputs:     None
             Outputs:    None
@@ -193,11 +200,18 @@ class Engine(QObject):
             mines = self.computerPlayer.getMines(self.computerGameState)
             # Try to get more moves for safe bricks
             safes = self.computerPlayer.getSafeBricks(self.computerGameState)
-            # If still no moves
-            if not mines and not safes:
-                # Get a random move
+            # If still no moves and not first move
+            if not mines and not safes and not self.computerGameState.firstMove:
+                # Get a probabilistic move
+                randomCoord, probability = self.computerPlayer.probability(self.computerGameState)
+                print("Guessing {} with probability of {}".format(randomCoord, probability))
+                # Add the probabilistic move to the left click Queue
+                self.leftClickQueue.append(randomCoord)
+            # If still no moves and it is the computer's first move
+            elif not mines and not safes and self.computerGameState.firstMove:
+                # Get a random coordinate
                 randomCoord = self.computerPlayer.first()
-                # Add the random move to the left click Queue
+                # Add the random move to the left click queue
                 self.leftClickQueue.append(randomCoord)
             # If new moves were found
             else:
@@ -250,7 +264,7 @@ class Engine(QObject):
     def runAIOnly(self):
         """ Runs the AI by itself, as fast as it can go. Updates computer knowledge of the current
             gamestate and commits actions the computer chooses. If computer can't produce a move
-            requests a guess from the computer
+            requests a probabilistic guess from the computer.
 
             Inputs:     None
             Outputs:    None
@@ -508,7 +522,7 @@ class Engine(QObject):
         """ Inserts game information into game_info table in database. Depending on configuration,
             will call the PsqlDatabase.insertGame() method one or multiple times. If the current
             game was loaded from a previous one, will call the finishSavedGame() method to
-            update the database appropriately
+            update the database appropriately.
 
             Inputs:     gameState <GameState>
                         player    <Player>
@@ -529,7 +543,7 @@ class Engine(QObject):
             # If multiplayer game
             if self.configuration == 2:
                 # Finish player game
-                self.gameDatabase.finishSavedGame(gameState, self.player, self.loadGameID, time, multiplayerFlag)
+                self.gameDatabase.finishSavedGame(self.playerGameState, self.player, self.loadGameID, time, multiplayerFlag)
                 # Finish computer game
                 self.gameDatabase.finishSavedGame(self.computerGameState, self.computerPlayer, self.computerLoadGameID, time, multiplayerFlag)
             # Otherwise,
@@ -560,7 +574,9 @@ class Engine(QObject):
 ####################################################################################################
 
     def saveGame(self, gameState, player, multiplayerFlag=None):
-        """ Saves a game to the database to be loaded later.
+        """ Saves a game to the database to be loaded later. Based on given configuration, will
+            insert a save with a mutliplayer id or none. If a game is loaded, will overwrite the
+            old save with the same gameID.
 
             Inputs:     gameState <GameState>
                         player <Player>
@@ -604,10 +620,11 @@ class Engine(QObject):
 ####################################################################################################
 
     def saveSingleGame(self):
-        """ Inserts a game in progress that the user has saved into the database.
+        """ Inserts a game in progress that the user has saved into the database. If it is the first
+            move, will not save the game.
 
-        Inputs:     None
-        Outputs:    None
+            Inputs:     None
+            Outputs:    None
         """
         # If the first move has not been player
         if self.playerGameState.firstMove:
@@ -624,7 +641,9 @@ class Engine(QObject):
 ####################################################################################################
 
     def saveMultipleGames(self):
-        """ Inserts multiplayer games in progress that the user saves into the database
+        """ Inserts multiplayer games in progress that the user saves into the database. If a game
+            was loaded, uses the old loaded gameIDs, if games were not, generates new IDs to be
+            inserted.
 
             Inputs:     None
             Outputs:    None

@@ -32,7 +32,9 @@ class GameDialog(QDialog):
         #-------------------------------------------------------------------------------------------
         # CONFIGURATION
         #-------------------------------------------------------------------------------------------
+        # Initialize array for player loaded game
         playerLoadGameCoords = []
+        # Initialize arry for computer loaded game 
         computerLoadGameCoords = []
         # Get overall configuration
         self.config = configuration[0]

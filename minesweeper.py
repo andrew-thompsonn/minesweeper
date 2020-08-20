@@ -12,7 +12,7 @@ from graphics.main_window import MainWindow
 #                                                           #
 #       3. Make computer not an idiot                       #   As smart as it gonna get
 #                                                           #
-#       4. Change multiprocessing for no erros              #   DONE
+#       4. Change multiprocessing for no errors             #   DONE
 #############################################################
 
 def main():
