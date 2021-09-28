@@ -63,7 +63,7 @@ class Engine(QObject):
         playerDifficulty = difficulties[0]
         # Get computer difficulty
         computerDifficulty = difficulties[1]
-        # make computerskill a class variable
+        # make computer skill a class variable
         self.computerSkill = computerSkill
 
         # Computer initialization
@@ -123,7 +123,7 @@ class Engine(QObject):
             # Initialize a player gamestate
             self.playerGameState = GameState(sizeX, sizeY, mines)
             # Update database with players info
-            self.gameDatabase.insertNewPlayer(playerName, True)
+            """self.gameDatabase.insertNewPlayer(playerName, True)"""
 
         # Initialize a human player
         self.player = Player(playerName, True)
@@ -166,7 +166,7 @@ class Engine(QObject):
         # Initialize a computer player
         self.computerPlayer = ComputerPlayer(computerSkill, self.computerGameState)
         # Add computer player to database (In case we make more versions of the computer)
-        self.gameDatabase.insertNewPlayer(self.computerPlayer.name, self.computerPlayer.isHuman)
+        """self.gameDatabase.insertNewPlayer(self.computerPlayer.name, self.computerPlayer.isHuman)"""
         # Initialize a computer board
         self.computerBoard = None
         # Enable computer board graphics
@@ -561,15 +561,15 @@ class Engine(QObject):
             # playing against player
             compAgainstID = playerGameID
             # Insert computer
-            self.gameDatabase.insertGame(self.computerGameState,self.computerPlayer,time,compGameID,compAgainstID)
+            """self.gameDatabase.insertGame(self.computerGameState,self.computerPlayer,time,compGameID,compAgainstID)"""
             # Insert player
-            self.gameDatabase.insertGame(self.playerGameState,self.player,time,playerGameID,playerAgainstID)
+            """self.gameDatabase.insertGame(self.playerGameState,self.player,time,playerGameID,playerAgainstID)"""
         # Otherwise insert the desired player and game into db
         else:
             # Get game ID
-            gameID = self.gameDatabase.incrementGameID()
+            """gameID = self.gameDatabase.incrementGameID()"""
             # Insert into database
-            self.gameDatabase.insertGame(gameState, player, time, gameID)
+            """self.gameDatabase.insertGame(gameState, player, time, gameID)"""
 
 ####################################################################################################
 

@@ -186,7 +186,7 @@ class ComputerPlayer(Player):
 
             Currently the computer's probabilistic guesses are correct 80.7% of the time
             This function is not optimized, and the calculated probabilities have an uncertainty
-            of +/- 7%.
+            of +/- ~7%.
 
             Inputs:     gameState <GameState>
             Outputs:    coordinates (<int>, <int>)

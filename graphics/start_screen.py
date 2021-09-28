@@ -63,17 +63,17 @@ class StartScreen(QWidget):
 
         # Button for single player options
         self.singlePlayerButton = QPushButton("Singleplayer")
-        self.singlePlayerButton.setStyleSheet("background:rgba(100, 100, 125, 0.7);")
+        self.singlePlayerButton.setStyleSheet("background:rgba(100, 100, 125, 1);")
         self.singlePlayerButton.setFixedSize(195, 35)
 
         # Button for multiplayer options
         self.multiPlayerButton = QPushButton("Multiplayer")
-        self.multiPlayerButton.setStyleSheet("background:rgba(100, 100, 125, 0.7);")
+        self.multiPlayerButton.setStyleSheet("background:rgba(100, 100, 125, 1);")
         self.multiPlayerButton.setFixedSize(195, 35)
 
         # Button for loading previous saves
         self.watchButton = QPushButton("Watch")
-        self.watchButton.setStyleSheet("background:rgba(100, 100, 125, 0.7);")
+        self.watchButton.setStyleSheet("background:rgba(100, 100, 125, 1);")
         self.watchButton.setFixedSize(195, 35)
 
         #-------------------------------------------------------------------------------------------

@@ -7,7 +7,7 @@ class Button(QPushButton):
     # Left click signal
     leftClick = pyqtSignal()
     # Right click signal
-    rightClick = pyqtSignal()\
+    rightClick = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -16,7 +16,7 @@ class Button(QPushButton):
         """ A method to override a mouse press event
 
             Inputs:     QMouseEvent <event>
-            Outputs:    None 
+            Outputs:    None
         """
         if QMouseEvent.button() == Qt.RightButton:
             self.rightClick.emit()

@@ -5,8 +5,11 @@ from game_components.brick import Brick
 from random import randrange
 from os import system
 
+####################################################################################################
+
 class GameState():
     """ Class for the current game state of a minesweeper game."""
+    
 ####################################################################################################
 
     def __init__(self, sizeX, sizeY, mines):
@@ -433,7 +436,7 @@ class GameState():
         """ Function to print ASCII version of game.
 
             Inputs:     None
-            Outputs:    None 
+            Outputs:    None
         """
         # 'Clear' terminal
         print("\n"*10)

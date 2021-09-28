@@ -21,7 +21,8 @@ class MultiPlayerOptions(QDialog):
         # Get database
         self.__database = database
         # Get all names in database
-        self.names = self.__database.selectNames()
+        self.names = ["Andrew"]
+        """self.names = self.__database.selectNames()"""
         # Set exit code to 1
         self._exitCode = 1
         # Multiplayer configuration code is 2

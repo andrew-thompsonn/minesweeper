@@ -20,7 +20,7 @@ from graphics.load_game_options import LoadGameOptions
 
 
 # Database
-from web.postgreSQL.psql_database import PsqlDatabase, PsqlDatabaseError
+#from web.postgreSQL.psql_database import PsqlDatabase, PsqlDatabaseError
 
 ####################################################################################################
 
@@ -41,6 +41,8 @@ class MainWindow(QMainWindow):
         # Initialize parent class
         super().__init__(*args, *kwargs)
 
+        self.__database = None
+        """
         # Create instance of database
         self.__database = PsqlDatabase()
         # Try to connect to the database
@@ -55,7 +57,7 @@ class MainWindow(QMainWindow):
             criticalErrorDialog = QMessageBox.critical(self,'Database Error',str(error)+refString, QMessageBox.Ok)
             # Exit the application
             self.quit(1)
-
+        """
         #-------------------------------------------------------------------------------------------
         # MENU BAR
         #-------------------------------------------------------------------------------------------
